@@ -28,6 +28,15 @@ export class TaggedCommitComments {
         this.headers = headers;
     }
 
+    static formatCommentMessage(messageTemplate: string, branch: Branch, repo: Repo) {
+        return messageTemplate
+            .replace(/[{]branchName[}]/g, branch.branchName)
+            .replace(/[{]branchUrl[}]/g, `https://github.com/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/tree/${encodeURIComponent(branch.branchName)}`)
+            .replace(/[{]repoOwner[}]/g, repo.owner)
+            .replace(/[{]repoName[}]/g, repo.repo)
+            .replace(/[{]author[}]/g, branch.username);
+    }
+
     async getCommitCommentsWithTag({commentTag, commitSHA}: Commit & CommentTag ) {
         const messages = (await this.octokit.request("GET /repos/{owner}/{repo}/commits/{commit_sha}/comments", {
             headers: this.headers,

@@ -1,9 +1,9 @@
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import {removeStaleBranches} from "./removeStaleBranches";
+import {DEFAULT_MESSAGE} from "src/messages";
 
-const DEFAULT_PROTECTED_BRANCHES = '^(master|main)$'
-const DEFAULT_MESSAGE = "{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last 60 days and is marked as stale. It will be removed in a week.\r\nIf you want to keep this branch around, delete this comment or add new commits to this branch.";
+export const DEFAULT_PROTECTED_BRANCHES = '^(master|main)$'
 
 async function run(): Promise<void> {
     const githubToken = core.getInput("github_token", { required: true });

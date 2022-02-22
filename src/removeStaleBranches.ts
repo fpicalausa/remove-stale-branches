@@ -106,14 +106,7 @@ async function* readBranches(octokit: Octokit, headers: {[key: string]: string},
     }
 }
 
-function formatCommentMessage(messageTemplate: string, branch: Branch, repo: Repo) {
-    return messageTemplate
-        .replace('/[{]branchName[}]/g', branch.branchName)
-        .replace('/[{]branchUrl[}]/g', `https://github.com/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/tree/${encodeURIComponent(branch.branchName)}`)
-        .replace('/[{]repoOwner[}]/g', repo.owner)
-        .replace('/[{]repoName[}]/g', repo.repo)
-        .replace('/[{]author[}]/g', branch.username);
-}
+
 
 async function removeOrNotifyStaleBranch(removeCutoff: number, commitComments: TaggedCommitComments, branch: Branch, params: Params) {
     const commentTag = "stale:" + branch.branchName;
@@ -131,7 +124,7 @@ async function removeOrNotifyStaleBranch(removeCutoff: number, commitComments: T
         return await commitComments.addCommitComments({
             commentTag,
             commitSHA: branch.commitId,
-            commentBody: formatCommentMessage(params.staleCommentMessage, branch, params.repo),
+            commentBody: TaggedCommitComments.formatCommentMessage(params.staleCommentMessage, branch, params.repo),
         })
     }
 
