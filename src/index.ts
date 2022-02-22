@@ -1,9 +1,14 @@
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { removeStaleBranches } from "./removeStaleBranches";
-import { DEFAULT_MESSAGE } from "./messages";
+import {
+  DEFAULT_DAYS_BEFORE_DELETE,
+  DEFAULT_DAYS_BEFORE_STALE,
+  DEFAULT_MESSAGE, DEFAULT_OPERATIONS_PER_RUN,
+  DEFAULT_PROTECTED_BRANCHES
+} from "./defaults";
 
-export const DEFAULT_PROTECTED_BRANCHES = "^(master|main)$";
+
 
 async function run(): Promise<void> {
   const githubToken = core.getInput("github_token", { required: true });
@@ -24,14 +29,14 @@ async function run(): Promise<void> {
   const daysBeforeBranchStale =
     Number.parseInt(
       core.getInput("days-before-branch-stale", { required: false })
-    ) || 90;
+    ) || DEFAULT_DAYS_BEFORE_STALE;
   const daysBeforeBranchDelete =
     Number.parseInt(
       core.getInput("days-before-branch-delete", { required: false })
-    ) || 7;
+    ) || DEFAULT_DAYS_BEFORE_DELETE;
   const operationsPerRun =
     Number.parseInt(core.getInput("operations-per-run", { required: false })) ||
-    10;
+    DEFAULT_OPERATIONS_PER_RUN;
 
   return removeStaleBranches(octokit, {
     isDryRun,
