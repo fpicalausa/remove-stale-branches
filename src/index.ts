@@ -1,7 +1,7 @@
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { removeStaleBranches } from "./removeStaleBranches";
-import { DEFAULT_MESSAGE } from "src/messages";
+import { DEFAULT_MESSAGE } from "./messages";
 
 export const DEFAULT_PROTECTED_BRANCHES = "^(master|main)$";
 

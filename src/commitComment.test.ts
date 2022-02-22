@@ -1,5 +1,5 @@
 import { TaggedCommitComments } from "./commitComments";
-import { DEFAULT_MESSAGE } from "src/messages";
+import { DEFAULT_MESSAGE } from "./messages";
 
 describe("Commit comments", () => {
   test("message placeholders are replaced", () => {
