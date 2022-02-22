@@ -1,13 +1,13 @@
-name: 'Remove Stale Branches'
-description: 'Cleanup stale branches from a repository'
-author: 'Francois Picalausa'
+name: "Remove Stale Branches"
+description: "Cleanup stale branches from a repository"
+author: "Francois Picalausa"
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/index.js"
 inputs:
   github_token:
-    description: 'The GITHUB_TOKEN secret'
+    description: "The GITHUB_TOKEN secret"
     required: true
   dry_run:
-    description: 'When set to true, no branch will be removed'
+    description: "When set to true, no branch will be removed"
     required: false
