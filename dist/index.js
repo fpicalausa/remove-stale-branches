@@ -8746,6 +8746,22 @@ exports.TaggedCommitComments = TaggedCommitComments;
 
 /***/ }),
 
+/***/ 4123:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DEFAULT_DAYS_BEFORE_STALE = exports.DEFAULT_DAYS_BEFORE_DELETE = exports.DEFAULT_OPERATIONS_PER_RUN = exports.DEFAULT_PROTECTED_BRANCHES = exports.DEFAULT_MESSAGE = void 0;
+exports.DEFAULT_MESSAGE = "@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last 60 days and is marked as stale. It will be removed in a week.\r\nIf you want to keep this branch around, delete this comment or add new commits to this branch.";
+exports.DEFAULT_PROTECTED_BRANCHES = "^(master|main)$";
+exports.DEFAULT_OPERATIONS_PER_RUN = 10;
+exports.DEFAULT_DAYS_BEFORE_DELETE = 7;
+exports.DEFAULT_DAYS_BEFORE_STALE = 90;
+
+
+/***/ }),
+
 /***/ 6144:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -8780,12 +8796,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DEFAULT_PROTECTED_BRANCHES = void 0;
 const github = __importStar(__nccwpck_require__(5438));
 const core = __importStar(__nccwpck_require__(2186));
 const removeStaleBranches_1 = __nccwpck_require__(800);
-const messages_1 = __nccwpck_require__(5982);
-exports.DEFAULT_PROTECTED_BRANCHES = "^(master|main)$";
+const defaults_1 = __nccwpck_require__(4123);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const githubToken = core.getInput("github_token", { required: true });
@@ -8795,16 +8809,16 @@ function run() {
             required: false,
         });
         const protectedBranchesRegex = core.getInput("exempt-branches-regex", { required: false }) ||
-            exports.DEFAULT_PROTECTED_BRANCHES;
+            defaults_1.DEFAULT_PROTECTED_BRANCHES;
         const protectedAuthorsRegex = core.getInput("exempt-authors-regex", {
             required: false,
         });
         const staleCommentMessage = core.getInput("stale-branch-message", { required: false }) ||
-            messages_1.DEFAULT_MESSAGE;
-        const daysBeforeBranchStale = Number.parseInt(core.getInput("days-before-branch-stale", { required: false })) || 90;
-        const daysBeforeBranchDelete = Number.parseInt(core.getInput("days-before-branch-delete", { required: false })) || 7;
+            defaults_1.DEFAULT_MESSAGE;
+        const daysBeforeBranchStale = Number.parseInt(core.getInput("days-before-branch-stale", { required: false })) || defaults_1.DEFAULT_DAYS_BEFORE_STALE;
+        const daysBeforeBranchDelete = Number.parseInt(core.getInput("days-before-branch-delete", { required: false })) || defaults_1.DEFAULT_DAYS_BEFORE_DELETE;
         const operationsPerRun = Number.parseInt(core.getInput("operations-per-run", { required: false })) ||
-            10;
+            defaults_1.DEFAULT_OPERATIONS_PER_RUN;
         return (0, removeStaleBranches_1.removeStaleBranches)(octokit, {
             isDryRun,
             repo: github.context.repo,
@@ -8823,32 +8837,11 @@ run();
 
 /***/ }),
 
-/***/ 5982:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ 2996:
+/***/ (function(__unused_webpack_module, exports) {
 
 "use strict";
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DEFAULT_MESSAGE = void 0;
-exports.DEFAULT_MESSAGE = "@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last 60 days and is marked as stale. It will be removed in a week.\r\nIf you want to keep this branch around, delete this comment or add new commits to this branch.";
-
-
-/***/ }),
-
-/***/ 800:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __await = (this && this.__await) || function (v) { return this instanceof __await ? (this.v = v, this) : new __await(v); }
 var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _arguments, generator) {
     if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
@@ -8861,21 +8854,8 @@ var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _ar
     function reject(value) { resume("throw", value); }
     function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
 };
-var __asyncValues = (this && this.__asyncValues) || function (o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.removeStaleBranches = void 0;
-const formatISO_1 = __importDefault(__nccwpck_require__(3385));
-const subDays_1 = __importDefault(__nccwpck_require__(970));
-const commitComments_1 = __nccwpck_require__(78);
+exports.readBranches = void 0;
 const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
   repository(name: $repo, owner: $owner) {
     id
@@ -8969,6 +8949,41 @@ function readBranches(octokit, headers, repo, organization) {
         }
     });
 }
+exports.readBranches = readBranches;
+
+
+/***/ }),
+
+/***/ 800:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.removeStaleBranches = void 0;
+const formatISO_1 = __importDefault(__nccwpck_require__(3385));
+const subDays_1 = __importDefault(__nccwpck_require__(970));
+const commitComments_1 = __nccwpck_require__(78);
+const readBranches_1 = __nccwpck_require__(2996);
 function removeOrNotifyStaleBranch(removeCutoff, commitComments, branch, params) {
     return __awaiter(this, void 0, void 0, function* () {
         const commentTag = "stale:" + branch.branchName;
@@ -8991,18 +9006,22 @@ function removeOrNotifyStaleBranch(removeCutoff, commitComments, branch, params)
             const commentDate = Date.parse(comment.created_at);
             return Math.max(commentDate, latestDate);
         }, 0);
-        if (latestStaleComment < removeCutoff) {
-            console.log("-> removing stale branch (stale comment date is " +
+        if (latestStaleComment >= removeCutoff) {
+            console.log("-> already marked stale on " +
                 (0, formatISO_1.default)(latestStaleComment) +
-                ")");
-            if (params.isDryRun) {
-                return;
-            }
-            commitComments.deleteBranch(branch);
-            comments.forEach((c) => {
-                commitComments.deleteCommitComments({ commentId: c.id });
-            });
+                ". Skipping.");
+            return;
         }
+        console.log("-> removing stale branch (stale comment date is " +
+            (0, formatISO_1.default)(latestStaleComment) +
+            ")");
+        if (params.isDryRun) {
+            return;
+        }
+        commitComments.deleteBranch(branch);
+        comments.forEach((c) => {
+            commitComments.deleteCommitComments({ commentId: c.id });
+        });
     });
 }
 function processBranch(branch, filters, commitComments, params) {
@@ -9059,7 +9078,7 @@ function removeStaleBranches(octokit, params) {
         const commitComments = new commitComments_1.TaggedCommitComments(repo, octokit, headers);
         let operations = 0;
         try {
-            for (var _b = __asyncValues(readBranches(octokit, headers, repo, params.protectedOrganizationName)), _c; _c = yield _b.next(), !_c.done;) {
+            for (var _b = __asyncValues((0, readBranches_1.readBranches)(octokit, headers, repo, params.protectedOrganizationName)), _c; _c = yield _b.next(), !_c.done;) {
                 const branch = _c.value;
                 if (yield processBranch(branch, filters, commitComments, params)) {
                     operations++;

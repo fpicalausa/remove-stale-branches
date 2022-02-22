@@ -2,133 +2,8 @@ import { Octokit } from "@octokit/core";
 import formatISO from "date-fns/formatISO";
 import subDays from "date-fns/subDays";
 import { TaggedCommitComments } from "./commitComments";
-import { Repo, Branch, Params } from "./types";
-
-const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
-  repository(name: $repo, owner: $owner) {
-    id
-    refs(
-      refPrefix: "refs/heads/",
-      first: 10, 
-      orderBy: { field: TAG_COMMIT_DATE, direction: ASC }, 
-      after: $after,
-    ) {
-      edges {
-        node {
-          branchName: name
-          prefix
-          target {
-          ... on Commit {
-              oid
-              author {
-                date
-                user {
-                  login
-                }
-              }
-            }
-          }
-        }
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-}`;
-
-const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organization: String!, $after: String) {
-  repository(name: $repo, owner: $owner) {
-    id
-    refs(
-      refPrefix: "refs/heads/",
-      first: 10, 
-      orderBy: { field: TAG_COMMIT_DATE, direction: ASC }, 
-      after: $after,
-    ) {
-      edges {
-        node {
-          branchName: name
-          prefix
-          target {
-          ... on Commit {
-              oid
-              author {
-                date
-                user {
-                  login
-        
-                  organization(login: $organization) {
-                    id
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-}`;
-
-async function* readBranches(
-  octokit: Octokit,
-  headers: { [key: string]: string },
-  repo: Repo,
-  organization?: string
-): AsyncGenerator<Branch> {
-  let pagination = { hasNextPage: true, endCursor: null };
-
-  while (pagination.hasNextPage) {
-    const params = {
-      ...repo,
-      after: pagination.endCursor,
-      headers,
-      organization,
-    };
-
-    const {
-      repository: {
-        refs: { edges, pageInfo },
-      },
-    } = await octokit.graphql(
-      organization ? GRAPHQL_QUERY_WITH_ORG : GRAPHQL_QUERY,
-      params
-    );
-
-    for (let i = 0; i < edges.length; ++i) {
-      const ref = edges[i];
-      const {
-        node: {
-          branchName,
-          prefix,
-          target: {
-            oid,
-            author: {
-              date,
-              user: { login, organization },
-            },
-          },
-        },
-      } = ref;
-
-      yield {
-        date: Date.parse(date),
-        branchName,
-        prefix,
-        commitId: oid,
-        username: login,
-        belongsToOrganization: Boolean(organization),
-      };
-    }
-    pagination = pageInfo;
-  }
-}
+import { Branch, Params } from "./types";
+import { readBranches } from "./readBranches";
 
 async function removeOrNotifyStaleBranch(
   removeCutoff: number,
@@ -164,22 +39,30 @@ async function removeOrNotifyStaleBranch(
     return Math.max(commentDate, latestDate);
   }, 0);
 
-  if (latestStaleComment < removeCutoff) {
+  if (latestStaleComment >= removeCutoff) {
     console.log(
-      "-> removing stale branch (stale comment date is " +
+      "-> already marked stale on " +
         formatISO(latestStaleComment) +
-        ")"
+        ". Skipping."
     );
-    if (params.isDryRun) {
-      return;
-    }
-
-    commitComments.deleteBranch(branch);
-
-    comments.forEach((c) => {
-      commitComments.deleteCommitComments({ commentId: c.id });
-    });
+    return;
   }
+
+  console.log(
+    "-> removing stale branch (stale comment date is " +
+      formatISO(latestStaleComment) +
+      ")"
+  );
+
+  if (params.isDryRun) {
+    return;
+  }
+
+  commitComments.deleteBranch(branch);
+
+  comments.forEach((c) => {
+    commitComments.deleteCommitComments({ commentId: c.id });
+  });
 }
 
 async function processBranch(
