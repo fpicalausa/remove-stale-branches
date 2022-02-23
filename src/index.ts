@@ -10,9 +10,9 @@ import {
 } from "./defaults";
 
 async function run(): Promise<void> {
-  const githubToken = core.getInput("github_token", { required: true });
+  const githubToken = core.getInput("github-token", { required: true });
   const octokit = github.getOctokit(githubToken);
-  const isDryRun = core.getBooleanInput("dry_run", { required: false });
+  const isDryRun = core.getBooleanInput("dry-run", { required: false });
   const protectedOrganizationName = core.getInput("exempt-organization", {
     required: false,
   });
