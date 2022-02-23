@@ -22,7 +22,7 @@ Without setting `dry_run: true`, this action will remove branches. Consider sett
 | `github-token`        | `${{ secrets.GITHUB_TOKEN }}` | PAT for GitHub API authentication.            |
 | `dry-run`             | `false`    | Flag that prevents this action from doing any modification to the repository. |
 | `exempt-organization` | (not set)  | Name of a Github organization. Branches for which the latest commiter belongs to this organization will be exempt from cleanup.  |
-| `exempt-branches-regex` | `^(main|master)$`  | Regular expression defining branches name that are exempt from cleanup. |
+| `exempt-branches-regex` | `^(main\|master)$`  | Regular expression defining branches name that are exempt from cleanup. |
 | `exempt-authors-regex` | (not set)  | Regular expression defining authors who are exempt from cleanup.  |
 | `stale-branch-message` | `@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last 60 days and is marked as stale. It will be removed in a week.\r\nIf you want to keep this branch around, delete this comment or add new commits to this branch.` | Template for commit comments notifying the author that their branch will be removed. | Template for commit comments notifying the author that their branch will be removed.  |
 | `days-before-branch-stale` | 90 | Number of days since the last commit before a branch is considered stale. Once stale, this action will leave a comment on the last commit, marking the branch as stale. |
