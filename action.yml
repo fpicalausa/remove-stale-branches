@@ -8,27 +8,34 @@ inputs:
   github-token:
     description: "PAT for GitHub API authentication."
     required: true
+    default: "${{ secrets.GITHUB_TOKEN }}"
   dry-run:
     description: "Flag that prevents this action from doing any modification to the repository."
     required: false
+    default: "false"
   exempt-organization:
     description: "Name of a Github organization. Branches for which the latest commiter belongs to this organization will be exempt from cleanup."
     required: false
   exempt-branches-regex:
     description: "Regular expression defining branches name that are exempt from cleanup. Defaults to `^(main|master)$`."
     required: false
+     default: "^(main|master)$"
   exempt-authors-regex:
     description: "Regular expression defining authors who are exempt from cleanup. By default, no author is exempted."
     required: false
   stale-branch-message:
     description: "Template for commit comments notifying the author that their branch will be removed."
+    default: "@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last 60 days and is marked as stale. It will be removed in a week.\r\nIf you want to keep this branch around, delete this comment or add new commits to this branch."
     required: false
   days-before-branch-stale:
     description: "Number of days since the last commit before a branch is considered stale. Once stale, this action will leave a comment on the last commit, marking the branch as stale."
+    default: "90"
     required: false
   days-before-branch-delete:
     description: "Number of days before a stale branch is removed."
+    default: "7"
     required: false
   operations-per-run:
     description: "Maximum number of stale branches to look at in any run of this action."
+    default: "10"
     required: false  
