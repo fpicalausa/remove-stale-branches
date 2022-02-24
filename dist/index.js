@@ -8746,22 +8746,6 @@ exports.TaggedCommitComments = TaggedCommitComments;
 
 /***/ }),
 
-/***/ 4123:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DEFAULT_DAYS_BEFORE_STALE = exports.DEFAULT_DAYS_BEFORE_DELETE = exports.DEFAULT_OPERATIONS_PER_RUN = exports.DEFAULT_PROTECTED_BRANCHES = exports.DEFAULT_MESSAGE = void 0;
-exports.DEFAULT_MESSAGE = "@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last 60 days and is marked as stale. It will be removed in a week.\r\nIf you want to keep this branch around, delete this comment or add new commits to this branch.";
-exports.DEFAULT_PROTECTED_BRANCHES = "^(master|main)$";
-exports.DEFAULT_OPERATIONS_PER_RUN = 10;
-exports.DEFAULT_DAYS_BEFORE_DELETE = 7;
-exports.DEFAULT_DAYS_BEFORE_STALE = 90;
-
-
-/***/ }),
-
 /***/ 6144:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -8799,26 +8783,26 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const github = __importStar(__nccwpck_require__(5438));
 const core = __importStar(__nccwpck_require__(2186));
 const removeStaleBranches_1 = __nccwpck_require__(800);
-const defaults_1 = __nccwpck_require__(4123);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const githubToken = core.getInput("github_token", { required: true });
+        const githubToken = core.getInput("github-token", { required: true });
         const octokit = github.getOctokit(githubToken);
-        const isDryRun = core.getBooleanInput("dry_run", { required: false });
+        const isDryRun = core.getBooleanInput("dry-run", { required: false });
         const protectedOrganizationName = core.getInput("exempt-organization", {
             required: false,
         });
-        const protectedBranchesRegex = core.getInput("exempt-branches-regex", { required: false }) ||
-            defaults_1.DEFAULT_PROTECTED_BRANCHES;
+        const protectedBranchesRegex = core.getInput("exempt-branches-regex", {
+            required: false,
+        });
         const protectedAuthorsRegex = core.getInput("exempt-authors-regex", {
             required: false,
         });
-        const staleCommentMessage = core.getInput("stale-branch-message", { required: false }) ||
-            defaults_1.DEFAULT_MESSAGE;
-        const daysBeforeBranchStale = Number.parseInt(core.getInput("days-before-branch-stale", { required: false })) || defaults_1.DEFAULT_DAYS_BEFORE_STALE;
-        const daysBeforeBranchDelete = Number.parseInt(core.getInput("days-before-branch-delete", { required: false })) || defaults_1.DEFAULT_DAYS_BEFORE_DELETE;
-        const operationsPerRun = Number.parseInt(core.getInput("operations-per-run", { required: false })) ||
-            defaults_1.DEFAULT_OPERATIONS_PER_RUN;
+        const staleCommentMessage = core.getInput("stale-branch-message", {
+            required: false,
+        });
+        const daysBeforeBranchStale = Number.parseInt(core.getInput("days-before-branch-stale", { required: false }));
+        const daysBeforeBranchDelete = Number.parseInt(core.getInput("days-before-branch-delete", { required: false }));
+        const operationsPerRun = Number.parseInt(core.getInput("operations-per-run", { required: false }));
         return (0, removeStaleBranches_1.removeStaleBranches)(octokit, {
             isDryRun,
             repo: github.context.repo,
@@ -8861,8 +8845,8 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
     id
     refs(
       refPrefix: "refs/heads/",
-      first: 10, 
-      orderBy: { field: TAG_COMMIT_DATE, direction: ASC }, 
+      first: 10,
+      orderBy: { field: TAG_COMMIT_DATE, direction: ASC },
       after: $after,
     ) {
       edges {
@@ -8894,8 +8878,8 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
     id
     refs(
       refPrefix: "refs/heads/",
-      first: 10, 
-      orderBy: { field: TAG_COMMIT_DATE, direction: ASC }, 
+      first: 10,
+      orderBy: { field: TAG_COMMIT_DATE, direction: ASC },
       after: $after,
     ) {
       edges {
@@ -8909,7 +8893,6 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
                 date
                 user {
                   login
-        
                   organization(login: $organization) {
                     id
                   }

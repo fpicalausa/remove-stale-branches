@@ -1,13 +1,6 @@
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { removeStaleBranches } from "./removeStaleBranches";
-import {
-  DEFAULT_DAYS_BEFORE_DELETE,
-  DEFAULT_DAYS_BEFORE_STALE,
-  DEFAULT_MESSAGE,
-  DEFAULT_OPERATIONS_PER_RUN,
-  DEFAULT_PROTECTED_BRANCHES,
-} from "./defaults";
 
 async function run(): Promise<void> {
   const githubToken = core.getInput("github-token", { required: true });
