@@ -16,26 +16,24 @@ async function run(): Promise<void> {
   const protectedOrganizationName = core.getInput("exempt-organization", {
     required: false,
   });
-  const protectedBranchesRegex =
-    core.getInput("exempt-branches-regex", { required: false }) ||
-    DEFAULT_PROTECTED_BRANCHES;
+  const protectedBranchesRegex = core.getInput("exempt-branches-regex", {
+    required: false,
+  });
   const protectedAuthorsRegex = core.getInput("exempt-authors-regex", {
     required: false,
   });
-  const staleCommentMessage =
-    core.getInput("stale-branch-message", { required: false }) ||
-    DEFAULT_MESSAGE;
-  const daysBeforeBranchStale =
-    Number.parseInt(
-      core.getInput("days-before-branch-stale", { required: false })
-    ) || DEFAULT_DAYS_BEFORE_STALE;
-  const daysBeforeBranchDelete =
-    Number.parseInt(
-      core.getInput("days-before-branch-delete", { required: false })
-    ) || DEFAULT_DAYS_BEFORE_DELETE;
-  const operationsPerRun =
-    Number.parseInt(core.getInput("operations-per-run", { required: false })) ||
-    DEFAULT_OPERATIONS_PER_RUN;
+  const staleCommentMessage = core.getInput("stale-branch-message", {
+    required: false,
+  });
+  const daysBeforeBranchStale = Number.parseInt(
+    core.getInput("days-before-branch-stale", { required: false })
+  );
+  const daysBeforeBranchDelete = Number.parseInt(
+    core.getInput("days-before-branch-delete", { required: false })
+  );
+  const operationsPerRun = Number.parseInt(
+    core.getInput("operations-per-run", { required: false })
+  );
 
   return removeStaleBranches(octokit, {
     isDryRun,
