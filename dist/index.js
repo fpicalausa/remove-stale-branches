@@ -9060,6 +9060,9 @@ function removeStaleBranches(octokit, params) {
         const filters = { staleCutoff, authorsRegex, branchRegex, removeCutoff };
         const commitComments = new commitComments_1.TaggedCommitComments(repo, octokit, headers);
         let operations = 0;
+        if (params.isDryRun) {
+            console.log("Running in dry-run mode. No branch will be removed.");
+        }
         try {
             for (var _b = __asyncValues((0, readBranches_1.readBranches)(octokit, headers, repo, params.protectedOrganizationName)), _c; _c = yield _b.next(), !_c.done;) {
                 const branch = _c.value;

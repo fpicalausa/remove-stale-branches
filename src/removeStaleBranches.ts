@@ -142,6 +142,10 @@ export async function removeStaleBranches(
   const commitComments = new TaggedCommitComments(repo, octokit, headers);
   let operations = 0;
 
+  if (params.isDryRun) {
+    console.log("Running in dry-run mode. No branch will be removed.");
+  }
+
   for await (const branch of readBranches(
     octokit,
     headers,
