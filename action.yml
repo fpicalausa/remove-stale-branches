@@ -19,7 +19,7 @@ inputs:
   exempt-branches-regex:
     description: "Regular expression defining branches name that are exempt from cleanup. Defaults to `^(main|master)$`."
     required: false
-     default: "^(main|master)$"
+    default: "^(main|master)$"
   exempt-authors-regex:
     description: "Regular expression defining authors who are exempt from cleanup. By default, no author is exempted."
     required: false
@@ -38,4 +38,4 @@ inputs:
   operations-per-run:
     description: "Maximum number of stale branches to look at in any run of this action."
     default: "10"
-    required: false  
+    required: false

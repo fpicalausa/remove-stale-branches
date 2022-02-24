@@ -2,7 +2,7 @@
 
 This Github Action will identify stale branches and mark them for deletion after a set period.
 
-By default, branches are identified as stale if their latest commit is older than 90 days. 
+By default, branches are identified as stale if their latest commit is older than 90 days.
 This is useful for repositories that have many contributors that work on and off, and may forget to cleanup 🧹
 
 # How it works?
@@ -17,17 +17,17 @@ Without setting `dry_run: true`, this action will remove branches. Consider sett
 
 ## Inputs
 
-| Input                 | Defaults   | Description                                                                                                         |
-| --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------- |
-| `github-token`        | `${{ secrets.GITHUB_TOKEN }}` | PAT for GitHub API authentication.            |
-| `dry-run`             | `false`    | Flag that prevents this action from doing any modification to the repository. |
-| `exempt-organization` | (not set)  | Name of a Github organization. Branches for which the latest commiter belongs to this organization will be exempt from cleanup.  |
-| `exempt-branches-regex` | `^(main\|master)$`  | Regular expression defining branches name that are exempt from cleanup. |
-| `exempt-authors-regex` | (not set)  | Regular expression defining authors who are exempt from cleanup.  |
-| `stale-branch-message` | `@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last 60 days and is marked as stale. It will be removed in a week.\r\nIf you want to keep this branch around, delete this comment or add new commits to this branch.` | Template for commit comments notifying the author that their branch will be removed. | Template for commit comments notifying the author that their branch will be removed.  |
-| `days-before-branch-stale` | 90 | Number of days since the last commit before a branch is considered stale. Once stale, this action will leave a comment on the last commit, marking the branch as stale. |
-| `days-before-branch-delete` | 7 | Number of days before a stale branch is removed. |
-| `operations-per-run` | 10 | Maximum number of stale branches to look at in any run of this action. |
+| Input                       | Defaults                                                                                                                                                                                                                                            | Description                                                                                                                                                             |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `github-token`              | `${{ secrets.GITHUB_TOKEN }}`                                                                                                                                                                                                                       | PAT for GitHub API authentication.                                                                                                                                      |
+| `dry-run`                   | `false`                                                                                                                                                                                                                                             | Flag that prevents this action from doing any modification to the repository.                                                                                           |
+| `exempt-organization`       | (not set)                                                                                                                                                                                                                                           | Name of a Github organization. Branches for which the latest commiter belongs to this organization will be exempt from cleanup.                                         |
+| `exempt-branches-regex`     | `^(main\|master)$`                                                                                                                                                                                                                                  | Regular expression defining branches name that are exempt from cleanup.                                                                                                 |
+| `exempt-authors-regex`      | (not set)                                                                                                                                                                                                                                           | Regular expression defining authors who are exempt from cleanup.                                                                                                        |
+| `stale-branch-message`      | `@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last 60 days and is marked as stale. It will be removed in a week.\r\nIf you want to keep this branch around, delete this comment or add new commits to this branch.` | Template for commit comments notifying the author that their branch will be removed.                                                                                    | Template for commit comments notifying the author that their branch will be removed. |
+| `days-before-branch-stale`  | 90                                                                                                                                                                                                                                                  | Number of days since the last commit before a branch is considered stale. Once stale, this action will leave a comment on the last commit, marking the branch as stale. |
+| `days-before-branch-delete` | 7                                                                                                                                                                                                                                                   | Number of days before a stale branch is removed.                                                                                                                        |
+| `operations-per-run`        | 10                                                                                                                                                                                                                                                  | Maximum number of stale branches to look at in any run of this action.                                                                                                  |
 
 ## Example usage
 
@@ -35,11 +35,12 @@ The follow examples show how you can use this action.
 
 ### Default configuration
 
-This configuration will mark all branches (except for main/master) as stale after 90 days. After 7 more days, it will remove the branch. 
+This configuration will mark all branches (except for main/master) as stale after 90 days. After 7 more days, it will remove the branch.
+
 ```yml
 on:
   schedule:
-    - cron: '0 0 * * *' # Everday at midnight
+    - cron: "0 0 * * *" # Everday at midnight
 
 jobs:
   remove-stale-branches:
@@ -54,10 +55,11 @@ jobs:
 ### Cleanup branches from people who left an organization
 
 This configuration will remove branches of people who are not longer part of the acme-inc organization after two weeks, except for (dependabot)[https://github.com/dependabot].
+
 ```yml
 on:
   schedule:
-    - cron: '0 0 * * *' # Everday at midnight
+    - cron: "0 0 * * *" # Everday at midnight
 
 jobs:
   remove-stale-branches:
@@ -67,7 +69,7 @@ jobs:
       - uses: fpicalausa/remove-stale-branches@v1
         with:
           dry-run: true # Check out the console output before setting this to false
-          exempt-organization: 'acme-inc'
+          exempt-organization: "acme-inc"
           exempt-authors-regex: "^dependabot"
           days-before-branch-stale: 7
           days-before-branch-delete: 7
@@ -75,13 +77,13 @@ jobs:
 
 # Why not using (your favorite action) instead?
 
-There are many other actions to remove stale branches out there. Some just [remove](https://github.com/beatlabs/delete-old-branches-action) [branches](https://github.com/cultureamp/delete-old-branches-action), no question asked. Others close the branche out [through a PR](https://github.com/etiennemartin/stale-branch-action). 
+There are many other actions to remove stale branches out there. Some just [remove](https://github.com/beatlabs/delete-old-branches-action) [branches](https://github.com/cultureamp/delete-old-branches-action), no question asked. Others close the branche out [through a PR](https://github.com/etiennemartin/stale-branch-action).
 
 This action notifies users through a commit comment. There are pros and cons to each approach, pick the one that suits you best!
 
 # Development & Build
 
-To start, install dependencies with `npm install`.  The source files live under `src`.
+To start, install dependencies with `npm install`. The source files live under `src`.
 
 You can run the tool locally with `ts-node src/cli.ts` 🖥️
 
