@@ -96,11 +96,21 @@ export class TaggedCommitComments {
     );
   }
 
+  async getBranch(branch: Branch) {
+    const ref = branch.prefix.replace(/^refs\//, "") + branch.branchName;
+    return this.octokit.request("GET /repos/{owner}/{repo}/git/refs/{ref}", {
+      headers: this.headers,
+      ...this.repo,
+      ref,
+    });
+  }
+
   async deleteBranch(branch: Branch) {
+    const ref = branch.prefix.replace(/^refs\//, "") + branch.branchName;
     return this.octokit.request("DELETE /repos/{owner}/{repo}/git/refs/{ref}", {
       headers: this.headers,
       ...this.repo,
-      ref: branch.prefix + "/" + branch.branchName,
+      ref,
     });
   }
 

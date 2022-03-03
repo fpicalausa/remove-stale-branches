@@ -8729,9 +8729,16 @@ class TaggedCommitComments {
             return this.octokit.request("DELETE /repos/{owner}/{repo}/comments/{comment_id}", Object.assign(Object.assign({ headers: this.headers }, this.repo), { comment_id: commentId }));
         });
     }
+    getBranch(branch) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const ref = branch.prefix.replace(/^refs\//, "") + branch.branchName;
+            return this.octokit.request("GET /repos/{owner}/{repo}/git/refs/{ref}", Object.assign(Object.assign({ headers: this.headers }, this.repo), { ref }));
+        });
+    }
     deleteBranch(branch) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.octokit.request("DELETE /repos/{owner}/{repo}/git/refs/{ref}", Object.assign(Object.assign({ headers: this.headers }, this.repo), { ref: branch.prefix + "/" + branch.branchName }));
+            const ref = branch.prefix.replace(/^refs\//, "") + branch.branchName;
+            return this.octokit.request("DELETE /repos/{owner}/{repo}/git/refs/{ref}", Object.assign(Object.assign({ headers: this.headers }, this.repo), { ref }));
         });
     }
     getProtectedBranches() {

@@ -69,6 +69,7 @@ export declare class TaggedCommitComments {
     }[]>;
     addCommitComments({ commentTag, commentBody, commitSHA, }: Commit & CommentTag & CommentBody): Promise<void>;
     deleteCommitComments({ commentId }: CommentId): Promise<import("@octokit/types").OctokitResponse<never, 204>>;
+    getBranch(branch: Branch): Promise<import("@octokit/types").OctokitResponse<any, number>>;
     deleteBranch(branch: Branch): Promise<import("@octokit/types").OctokitResponse<never, 204>>;
     getProtectedBranches(): Promise<any>;
 }
