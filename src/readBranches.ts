@@ -7,7 +7,6 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
     refs(
       refPrefix: "refs/heads/",
       first: 10,
-      orderBy: { field: TAG_COMMIT_DATE, direction: ASC },
       after: $after,
     ) {
       edges {
@@ -40,7 +39,6 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
     refs(
       refPrefix: "refs/heads/",
       first: 10,
-      orderBy: { field: TAG_COMMIT_DATE, direction: ASC },
       after: $after,
     ) {
       edges {
