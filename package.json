@@ -8,7 +8,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "ncc build src/index.ts",
-    "test": "jest"
+    "test": "jest",
+    "prettier:write": "prettier --write 'src/*.ts'"
   },
   "dependencies": {
     "@actions/core": "^1.6.0",
