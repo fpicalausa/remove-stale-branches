@@ -20,6 +20,10 @@ inputs:
     description: "Regular expression defining branches name that are exempt from cleanup. Defaults to `^(main|master)$`."
     required: false
     default: "^(main|master)$"
+  exempt-protected-braches:
+    description: "Whether protected branches are exempted"
+    required: false
+    default: "true"
   exempt-authors-regex:
     description: "Regular expression defining authors who are exempt from cleanup. By default, no author is exempted."
     required: false

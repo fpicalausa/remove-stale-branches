@@ -11,6 +11,7 @@ describe("Commit comments", () => {
         branchName: "the-branch",
         prefix: "origin",
         commitId: "123456",
+        isProtected: false,
       },
       {
         repo: "octocat",

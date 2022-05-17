@@ -15,6 +15,12 @@ async function run(): Promise<void> {
   const protectedAuthorsRegex = core.getInput("exempt-authors-regex", {
     required: false,
   });
+  const exemptProtectedBranches = core.getBooleanInput(
+    "exempt-protected-branches",
+    {
+      required: false,
+    }
+  );
   const staleCommentMessage = core.getInput("stale-branch-message", {
     required: false,
   });
@@ -37,6 +43,7 @@ async function run(): Promise<void> {
     protectedBranchesRegex,
     protectedAuthorsRegex,
     protectedOrganizationName,
+    exemptProtectedBranches,
     operationsPerRun,
   });
 }

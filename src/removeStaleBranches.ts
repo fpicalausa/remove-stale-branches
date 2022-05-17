@@ -18,8 +18,8 @@ async function removeOrNotifyStaleBranch(
   });
 
   if (comments.length == 0) {
+    console.log("-> marking as stale");
     if (params.isDryRun) {
-      console.log("-> marking as stale");
       return;
     }
 
@@ -65,14 +65,17 @@ async function removeOrNotifyStaleBranch(
   });
 }
 
+type BranchFilters = {
+  staleCutoff: number;
+  authorsRegex: RegExp | null;
+  branchRegex: RegExp | null;
+  removeCutoff: number;
+  exemptProtectedBranches: boolean;
+};
+
 async function processBranch(
   branch: Branch,
-  filters: {
-    staleCutoff: number;
-    authorsRegex: RegExp | null;
-    branchRegex: RegExp | null;
-    removeCutoff: number;
-  },
+  filters: BranchFilters,
   commitComments: TaggedCommitComments,
   params: Params
 ) {
@@ -93,7 +96,12 @@ async function processBranch(
   }
 
   if (filters.branchRegex && filters.branchRegex.test(branch.branchName)) {
-    console.log("-> branch " + branch.branchName + " is protected");
+    console.log("-> branch " + branch.branchName + " is exempted");
+    return false;
+  }
+
+  if (filters.exemptProtectedBranches && branch.isProtected) {
+    console.log("-> branch " + branch.username + " is protected");
     return false;
   }
 
@@ -138,7 +146,13 @@ export async function removeStaleBranches(
     owner: params.repo.owner,
   };
 
-  const filters = { staleCutoff, authorsRegex, branchRegex, removeCutoff };
+  const filters: BranchFilters = {
+    staleCutoff,
+    authorsRegex,
+    branchRegex,
+    removeCutoff,
+    exemptProtectedBranches: params.exemptProtectedBranches,
+  };
   const commitComments = new TaggedCommitComments(repo, octokit, headers);
   let operations = 0;
 
