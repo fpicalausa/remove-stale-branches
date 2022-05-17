@@ -1,3 +1,4 @@
+import core from "@actions/core";
 import { Octokit } from "@octokit/core";
 import formatISO from "date-fns/formatISO";
 import subDays from "date-fns/subDays";
@@ -18,7 +19,7 @@ async function removeOrNotifyStaleBranch(
   });
 
   if (comments.length == 0) {
-    console.log("-> marking as stale");
+    console.log("-> ✍️ marking as stale");
     if (params.isDryRun) {
       return;
     }
@@ -50,7 +51,7 @@ async function removeOrNotifyStaleBranch(
   }
 
   console.log(
-    "-> removing stale branch (stale comment date is " +
+    "-> 🗑️ removing stale branch (stale comment date is " +
       formatISO(latestStaleComment) +
       ")"
   );
@@ -80,8 +81,6 @@ async function processBranch(
   commitComments: TaggedCommitComments,
   params: Params
 ) {
-  console.log("Looking at branch " + branch.branchName);
-
   if (params.protectedOrganizationName && branch.belongsToOrganization) {
     console.log(
       "-> author " +
@@ -167,8 +166,13 @@ export async function removeStaleBranches(
     repo,
     params.protectedOrganizationName
   )) {
-    if (await processBranch(branch, filters, commitComments, params)) {
-      operations++;
+    core.startGroup("Inspecting branch " + branch.branchName);
+    try {
+      if (await processBranch(branch, filters, commitComments, params)) {
+        operations++;
+      }
+    } finally {
+      core.endGroup();
     }
 
     if (operations >= params.operationsPerRun) {
