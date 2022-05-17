@@ -5,6 +5,7 @@ export declare type Branch = {
     prefix: string;
     commitId: string;
     username: string;
+    isProtected: boolean;
 };
 export declare type Repo = {
     repo: string;
@@ -19,6 +20,7 @@ export declare type Params = {
     protectedBranchesRegex?: string;
     protectedAuthorsRegex?: string;
     protectedOrganizationName?: string;
+    exemptProtectedBranches: boolean;
     operationsPerRun: number;
     repo: Repo;
 };

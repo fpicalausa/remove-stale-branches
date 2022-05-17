@@ -1,10 +1,10 @@
-import core from "@actions/core";
 import { Octokit } from "@octokit/core";
 import formatISO from "date-fns/formatISO";
 import subDays from "date-fns/subDays";
 import { TaggedCommitComments } from "./commitComments";
 import { Branch, Params } from "./types";
 import { readBranches } from "./readBranches";
+import * as core from "@actions/core";
 
 async function removeOrNotifyStaleBranch(
   removeCutoff: number,

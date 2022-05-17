@@ -10,7 +10,7 @@ let octokit = new Octokit({
 
 const timer = setTimeout(() => {}, 120000);
 removeStaleBranches(octokit, {
-  isDryRun: true,
+  isDryRun: false,
   daysBeforeBranchStale: 60,
   daysBeforeBranchDelete: 7,
   staleCommentMessage:
@@ -18,6 +18,7 @@ removeStaleBranches(octokit, {
   protectedBranchesRegex: "^(main|master)$",
   operationsPerRun: 10,
   githubToken: process.env.GITHUB_TOKEN || "",
+  exemptProtectedBranches: true,
   repo: {
     owner: "github",
     repo: "octocat",

@@ -20,7 +20,7 @@ inputs:
     description: "Regular expression defining branches name that are exempt from cleanup. Defaults to `^(main|master)$`."
     required: false
     default: "^(main|master)$"
-  exempt-protected-braches:
+  exempt-protected-branches:
     description: "Whether protected branches are exempted"
     required: false
     default: "true"
