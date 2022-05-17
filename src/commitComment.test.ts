@@ -14,6 +14,10 @@ describe("Commit comments", () => {
         isProtected: false,
       },
       {
+        daysBeforeBranchStale: 5,
+        daysBeforeBranchDelete: 10,
+      },
+      {
         repo: "octocat",
         owner: "github",
       }

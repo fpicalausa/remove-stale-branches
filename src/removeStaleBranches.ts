@@ -29,6 +29,7 @@ async function removeOrNotifyStaleBranch(
       commentBody: TaggedCommitComments.formatCommentMessage(
         params.staleCommentMessage,
         branch,
+        params,
         params.repo
       ),
     });

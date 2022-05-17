@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/core";
-import { Repo, Branch } from "./types";
+import { Repo, Branch, Params } from "./types";
 
 type Commit = {
   commitSHA: string;
@@ -31,6 +31,7 @@ export class TaggedCommitComments {
   static formatCommentMessage(
     messageTemplate: string,
     branch: Branch,
+    config: Pick<Params, "daysBeforeBranchStale" | "daysBeforeBranchDelete">,
     repo: Repo
   ) {
     return messageTemplate
@@ -45,7 +46,15 @@ export class TaggedCommitComments {
       )
       .replace(/[{]repoOwner[}]/g, repo.owner)
       .replace(/[{]repoName[}]/g, repo.repo)
-      .replace(/[{]author[}]/g, branch.username);
+      .replace(/[{]author[}]/g, branch.username)
+      .replace(
+        /[{]daysBeforeBranchStale[}]/g,
+        String(config.daysBeforeBranchStale)
+      )
+      .replace(
+        /[{]daysBeforeBranchDelete[}]/g,
+        String(config.daysBeforeBranchDelete)
+      );
   }
 
   async getCommitCommentsWithTag({
