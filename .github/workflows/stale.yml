@@ -1,0 +1,13 @@
+name: 'Remove stale branches'
+on:
+  workflow_dispatch:
+
+jobs:
+  stale-branches:
+    name: Cleanup stale branches
+    runs-on: ubuntu-latest
+    steps:
+      - uses: fpicalausa/remove-stale-branches@master
+        with:
+          days-before-branch-stale: 15
+          dry-run: false
