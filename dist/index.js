@@ -9262,8 +9262,8 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
           branchName: name
           prefix
           ... on Ref {
-            branchProtectionRule {
-              id
+            refUpdateRule {
+              allowsDeletions
             }
           }
           target {
@@ -9299,8 +9299,8 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
           branchName: name
           prefix
           ... on Ref {
-            branchProtectionRule {
-              id
+            refUpdateRule {
+              allowsDeletions
             }
           }
           target {
@@ -9335,7 +9335,7 @@ function readBranches(octokit, headers, repo, organization) {
             const { repository: { refs: { edges, pageInfo }, }, } = yield __await(octokit.graphql(organization ? GRAPHQL_QUERY_WITH_ORG : GRAPHQL_QUERY, params));
             for (let i = 0; i < edges.length; ++i) {
                 const ref = edges[i];
-                const { node: { branchName, prefix, branchProtectionRule, target: { oid, author: { date, user: { login, organization }, }, }, }, } = ref;
+                const { node: { branchName, prefix, refUpdateRule, target: { oid, author: { date, user: { login, organization }, }, }, }, } = ref;
                 yield yield __await({
                     date: Date.parse(date),
                     branchName,
@@ -9343,7 +9343,7 @@ function readBranches(octokit, headers, repo, organization) {
                     commitId: oid,
                     username: login,
                     belongsToOrganization: Boolean(organization),
-                    isProtected: branchProtectionRule !== null,
+                    isProtected: refUpdateRule !== null,
                 });
             }
             pagination = pageInfo;

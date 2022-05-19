@@ -14,8 +14,8 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
           branchName: name
           prefix
           ... on Ref {
-            branchProtectionRule {
-              id
+            refUpdateRule {
+              allowsDeletions
             }
           }
           target {
@@ -51,8 +51,8 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
           branchName: name
           prefix
           ... on Ref {
-            branchProtectionRule {
-              id
+            refUpdateRule {
+              allowsDeletions
             }
           }
           target {
@@ -110,7 +110,7 @@ export async function* readBranches(
         node: {
           branchName,
           prefix,
-          branchProtectionRule,
+          refUpdateRule,
           target: {
             oid,
             author: {
@@ -128,7 +128,7 @@ export async function* readBranches(
         commitId: oid,
         username: login,
         belongsToOrganization: Boolean(organization),
-        isProtected: branchProtectionRule !== null,
+        isProtected: refUpdateRule !== null,
       };
     }
     pagination = pageInfo;

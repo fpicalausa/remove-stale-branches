@@ -1,7 +1,7 @@
 {
   "name": "remove-stale-branches",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Cleanup stale branches from a repository",
   "main": "dist/index.js",
   "author": "Francois Picalausa <francois.picalausa@houzz.com>",
