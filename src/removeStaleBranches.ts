@@ -20,10 +20,49 @@ async function removeOrNotifyStaleBranch(
 
   if (comments.length == 0) {
     console.log("-> ✍️ marking as stale");
+  }
+}
+
+type BranchFilters = {
+  staleCutoff: number;
+  authorsRegex: RegExp | null;
+  branchRegex: RegExp | null;
+  removeCutoff: number;
+  exemptProtectedBranches: boolean;
+};
+
+async function processBranch(
+  plan: Action,
+  branch: Branch,
+  commitComments: TaggedCommitComments,
+  params: Params
+) {
+  if (plan.action === "skip") {
+    console.log(plan.reason);
+    return;
+  }
+
+  if (plan.action === "keep stale") {
+    console.log(
+      "Branch was marked stale on " + formatISO(plan.lastCommentTime)
+    );
+    console.log(
+      "It will be removed within " + params.daysBeforeBranchDelete + "days"
+    );
+    return;
+  }
+
+  if (plan.action === "mark stale") {
+    console.log("Marking branch as stale");
+    console.log(
+      "It will be removed within " + params.daysBeforeBranchDelete + "days"
+    );
+
     if (params.isDryRun) {
       return;
     }
 
+    const commentTag = "stale:" + branch.branchName;
     return await commitComments.addCommitComments({
       commentTag,
       commitSHA: branch.commitId,
@@ -36,89 +75,100 @@ async function removeOrNotifyStaleBranch(
     });
   }
 
+  if (plan.action === "remove") {
+    console.log(
+      "-> 🗑️ removing stale branch (stale comment date is " +
+        formatISO(plan.lastCommentTime) +
+        ")"
+    );
+
+    if (params.isDryRun) {
+      return;
+    }
+
+    commitComments.deleteBranch(branch);
+
+    plan.comments.forEach((c) => {
+      commitComments.deleteCommitComments({ commentId: c.id });
+    });
+  }
+}
+
+type Action =
+  | { action: "skip"; reason: string }
+  | { action: "mark stale" }
+  | { action: "keep stale"; lastCommentTime: number }
+  | { action: "remove"; lastCommentTime: number; comments: Comment[] };
+
+function skip(reason: string): Action {
+  return {
+    action: "skip",
+    reason: reason,
+  };
+}
+
+type Comment = { created_at: string; id: number };
+
+async function getCommitCommentsForBranch(
+  commitComments: TaggedCommitComments,
+  branch: Branch
+): Promise<Comment[]> {
+  const commentTag = "stale:" + branch.branchName;
+  return await commitComments.getCommitCommentsWithTag({
+    commentTag,
+    commitSHA: branch.commitId,
+  });
+}
+
+async function planBranchAction(
+  branch: Branch,
+  filters: BranchFilters,
+  commitComments: TaggedCommitComments,
+  params: Params
+): Promise<Action> {
+  if (params.protectedOrganizationName && branch.belongsToOrganization) {
+    return skip(
+      `author ${branch.username} belongs to protected organization ${params.protectedOrganizationName}`
+    );
+  }
+
+  if (filters.authorsRegex && filters.authorsRegex.test(branch.username)) {
+    return skip(`author ${branch.username} is exempted`);
+  }
+
+  if (filters.branchRegex && filters.branchRegex.test(branch.branchName)) {
+    return skip(`branch ${branch.branchName} is exempted`);
+  }
+
+  if (filters.exemptProtectedBranches && branch.isProtected) {
+    return skip(`branch ${branch.branchName} is protected`);
+  }
+
+  if (branch.date >= filters.staleCutoff) {
+    return skip(
+      `branch ${branch.branchName} was updated recently (${formatISO(
+        branch.date
+      )})`
+    );
+  }
+
+  const comments = await getCommitCommentsForBranch(commitComments, branch);
+  if (comments.length == 0) {
+    return {
+      action: "mark stale",
+    };
+  }
+
   const latestStaleComment = comments.reduce((latestDate, comment) => {
     const commentDate = Date.parse(comment.created_at);
     return Math.max(commentDate, latestDate);
   }, 0);
 
-  if (latestStaleComment >= removeCutoff) {
-    console.log(
-      "-> already marked stale on " +
-        formatISO(latestStaleComment) +
-        ". Skipping."
-    );
-    return;
+  if (latestStaleComment >= filters.removeCutoff) {
+    return { action: "keep stale", lastCommentTime: latestStaleComment };
   }
 
-  console.log(
-    "-> 🗑️ removing stale branch (stale comment date is " +
-      formatISO(latestStaleComment) +
-      ")"
-  );
-
-  if (params.isDryRun) {
-    return;
-  }
-
-  commitComments.deleteBranch(branch);
-
-  comments.forEach((c) => {
-    commitComments.deleteCommitComments({ commentId: c.id });
-  });
-}
-
-type BranchFilters = {
-  staleCutoff: number;
-  authorsRegex: RegExp | null;
-  branchRegex: RegExp | null;
-  removeCutoff: number;
-  exemptProtectedBranches: boolean;
-};
-
-async function processBranch(
-  branch: Branch,
-  filters: BranchFilters,
-  commitComments: TaggedCommitComments,
-  params: Params
-) {
-  if (params.protectedOrganizationName && branch.belongsToOrganization) {
-    console.log(
-      "-> author " +
-        branch.username +
-        " belongs to protected organization " +
-        params.protectedOrganizationName
-    );
-  }
-
-  if (filters.authorsRegex && filters.authorsRegex.test(branch.username)) {
-    console.log("-> author " + branch.username + " is protected");
-    return false;
-  }
-
-  if (filters.branchRegex && filters.branchRegex.test(branch.branchName)) {
-    console.log("-> branch " + branch.branchName + " is exempted");
-    return false;
-  }
-
-  if (filters.exemptProtectedBranches && branch.isProtected) {
-    console.log("-> branch " + branch.username + " is protected");
-    return false;
-  }
-
-  if (branch.date >= filters.staleCutoff) {
-    console.log("-> updated recently");
-    return false;
-  } else {
-    console.log("-> last update was on " + formatISO(branch.date));
-  }
-
-  await removeOrNotifyStaleBranch(
-    filters.removeCutoff,
-    commitComments,
-    branch,
-    params
-  );
-  return true;
+  return { action: "remove", comments, lastCommentTime: latestStaleComment };
 }
 
 export async function removeStaleBranches(
@@ -160,15 +210,39 @@ export async function removeStaleBranches(
     console.log("Running in dry-run mode. No branch will be removed.");
   }
 
+  console.log(
+    `Branches updated before ${formatISO(staleCutoff)} will be marked as stale`
+  );
+  console.log(
+    `Branches updated before ${formatISO(
+      removeCutoff
+    )} will be candidate for deletion`
+  );
+
+  const icons: Record<Action["action"], string> = {
+    remove: "❌",
+    "mark stale": "✏",
+    "keep stale": "😐",
+    skip: "✅",
+  };
+
   for await (const branch of readBranches(
     octokit,
     headers,
     repo,
     params.protectedOrganizationName
   )) {
-    core.startGroup("Inspecting branch " + branch.branchName);
+    const plan = await planBranchAction(
+      branch,
+      filters,
+      commitComments,
+      params
+    );
+    core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);
     try {
-      if (await processBranch(branch, filters, commitComments, params)) {
+      await processBranch(plan, branch, commitComments, params);
+
+      if (plan.action !== "skip") {
         operations++;
       }
     } finally {
