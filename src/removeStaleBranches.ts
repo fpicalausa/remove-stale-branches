@@ -15,7 +15,7 @@ type BranchFilters = {
 };
 
 async function processBranch(
-  plan: Action,
+  plan: Plan,
   branch: Branch,
   commitComments: TaggedCommitComments,
   params: Params
@@ -77,13 +77,13 @@ async function processBranch(
   }
 }
 
-type Action =
+type Plan =
   | { action: "skip"; reason: string }
   | { action: "mark stale" }
   | { action: "keep stale"; lastCommentTime: number }
   | { action: "remove"; lastCommentTime: number; comments: Comment[] };
 
-function skip(reason: string): Action {
+function skip(reason: string): Plan {
   return {
     action: "skip",
     reason: reason,
@@ -108,7 +108,7 @@ async function planBranchAction(
   filters: BranchFilters,
   commitComments: TaggedCommitComments,
   params: Params
-): Promise<Action> {
+): Promise<Plan> {
   if (params.protectedOrganizationName && branch.belongsToOrganization) {
     return skip(
       `author ${branch.username} belongs to protected organization ${params.protectedOrganizationName}`
@@ -202,7 +202,7 @@ export async function removeStaleBranches(
     )} will be candidate for deletion`
   );
 
-  const icons: Record<Action["action"], string> = {
+  const icons: Record<Plan["action"], string> = {
     remove: "❌",
     "mark stale": "✏",
     "keep stale": "😐",
