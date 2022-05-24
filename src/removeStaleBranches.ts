@@ -6,23 +6,6 @@ import { Branch, Params } from "./types";
 import { readBranches } from "./readBranches";
 import * as core from "@actions/core";
 
-async function removeOrNotifyStaleBranch(
-  removeCutoff: number,
-  commitComments: TaggedCommitComments,
-  branch: Branch,
-  params: Params
-) {
-  const commentTag = "stale:" + branch.branchName;
-  const comments = await commitComments.getCommitCommentsWithTag({
-    commentTag,
-    commitSHA: branch.commitId,
-  });
-
-  if (comments.length == 0) {
-    console.log("-> ✍️ marking as stale");
-  }
-}
-
 type BranchFilters = {
   staleCutoff: number;
   authorsRegex: RegExp | null;
