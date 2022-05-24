@@ -5,6 +5,7 @@ import { TaggedCommitComments } from "./commitComments";
 import { Branch, Params } from "./types";
 import { readBranches } from "./readBranches";
 import * as core from "@actions/core";
+import { addDays } from "date-fns";
 
 type BranchFilters = {
   staleCutoff: number;
@@ -30,7 +31,7 @@ async function processBranch(
       "Branch was marked stale on " + formatISO(plan.lastCommentTime)
     );
     console.log(
-      "It will be removed within " + params.daysBeforeBranchDelete + "days"
+      "It will be removed on " + formatISO(plan.cutoffTime)
     );
     return;
   }
@@ -38,7 +39,7 @@ async function processBranch(
   if (plan.action === "mark stale") {
     console.log("Marking branch as stale");
     console.log(
-      "It will be removed within " + params.daysBeforeBranchDelete + "days"
+      "It will be removed on " + formatISO(plan.cutoffTime)
     );
 
     if (params.isDryRun) {
@@ -62,7 +63,7 @@ async function processBranch(
     console.log(
       "-> 🗑️ removing stale branch (stale comment date is " +
         formatISO(plan.lastCommentTime) +
-        ")"
+        " and cut-off is " + formatISO(plan.cutoffTime) + ')'
     );
 
     if (params.isDryRun) {
@@ -79,9 +80,9 @@ async function processBranch(
 
 type Plan =
   | { action: "skip"; reason: string }
-  | { action: "mark stale" }
-  | { action: "keep stale"; lastCommentTime: number }
-  | { action: "remove"; lastCommentTime: number; comments: Comment[] };
+  | { action: "mark stale"; cutoffTime: number }
+  | { action: "keep stale"; lastCommentTime: number, cutoffTime: number }
+  | { action: "remove"; lastCommentTime: number; cutoffTime: number; comments: Comment[] };
 
 function skip(reason: string): Plan {
   return {
@@ -104,6 +105,7 @@ async function getCommitCommentsForBranch(
 }
 
 async function planBranchAction(
+  now: number,
   branch: Branch,
   filters: BranchFilters,
   commitComments: TaggedCommitComments,
@@ -139,6 +141,7 @@ async function planBranchAction(
   if (comments.length == 0) {
     return {
       action: "mark stale",
+      cutoffTime: addDays(now, params.daysBeforeBranchDelete).getTime(),
     };
   }
 
@@ -147,11 +150,12 @@ async function planBranchAction(
     return Math.max(commentDate, latestDate);
   }, 0);
 
-  if (latestStaleComment >= filters.removeCutoff) {
-    return { action: "keep stale", lastCommentTime: latestStaleComment };
+  const cutoffTime = addDays(latestStaleComment, params.daysBeforeBranchDelete).getTime();
+  if (latestStaleComment <= filters.removeCutoff) {
+    return { action: "keep stale", cutoffTime, lastCommentTime: latestStaleComment };
   }
 
-  return { action: "remove", comments, lastCommentTime: latestStaleComment };
+  return { action: "remove", comments, cutoffTime, lastCommentTime: latestStaleComment };
 }
 
 export async function removeStaleBranches(
@@ -196,10 +200,9 @@ export async function removeStaleBranches(
   console.log(
     `Branches updated before ${formatISO(staleCutoff)} will be marked as stale`
   );
+
   console.log(
-    `Branches updated before ${formatISO(
-      removeCutoff
-    )} will be candidate for deletion`
+    `Branches marked stale before ${formatISO(removeCutoff)} will be removed`
   );
 
   const icons: Record<Plan["action"], string> = {
@@ -216,6 +219,7 @@ export async function removeStaleBranches(
     params.protectedOrganizationName
   )) {
     const plan = await planBranchAction(
+      now.getTime(),
       branch,
       filters,
       commitComments,
