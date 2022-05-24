@@ -4,7 +4,7 @@
   "version": "1.5.1",
   "description": "Cleanup stale branches from a repository",
   "main": "src/index.ts",
-  "author": "Francois Picalausa <francois.picalausa@houzz.com>",
+  "author": "Francois Picalausa <fpicalausa@gmail.com>",
   "license": "UNLICENSED",
   "scripts": {
     "build": "ncc build src/index.ts",
