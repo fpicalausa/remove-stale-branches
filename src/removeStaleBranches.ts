@@ -21,28 +21,23 @@ async function processBranch(
   commitComments: TaggedCommitComments,
   params: Params
 ) {
+  console.log(
+    "-> branch was last updated by " + branch.username + " on " + branch.date);
+
   if (plan.action === "skip") {
     console.log(plan.reason);
     return;
   }
 
-  if (plan.action === "keep stale") {
-    console.log(
-      "Branch was marked stale on " + formatISO(plan.lastCommentTime)
-    );
-    console.log(
-      "It will be removed on " + formatISO(plan.cutoffTime)
-    );
-    return;
-  }
 
   if (plan.action === "mark stale") {
-    console.log("Marking branch as stale");
     console.log(
-      "It will be removed on " + formatISO(plan.cutoffTime)
+      "-> branch will be removed on " + formatISO(plan.cutoffTime)
     );
+    console.log("-> marking branch as stale");
 
     if (params.isDryRun) {
+      console.log("-> (doing nothing because of dry run flag)");
       return;
     }
 
@@ -59,14 +54,21 @@ async function processBranch(
     });
   }
 
-  if (plan.action === "remove") {
-    console.log(
-      "-> 🗑️ removing stale branch (stale comment date is " +
-        formatISO(plan.lastCommentTime) +
-        " and cut-off is " + formatISO(plan.cutoffTime) + ')'
-    );
+  console.log(
+    "-> branch was marked stale on " + plan.lastCommentTime);
 
+  if (plan.action === "keep stale") {
+    console.log(
+      "-> branch will be removed on " + formatISO(plan.cutoffTime)
+    );
+    return;
+  }
+
+  if (plan.action === "remove") {
+    console.log("-> branch was slated for deletion on " + plan.cutoffTime);
+    console.log("-> removing branch");
     if (params.isDryRun) {
+      console.log("-> (doing nothing because of dry run flag)");
       return;
     }
 
