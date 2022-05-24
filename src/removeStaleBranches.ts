@@ -22,18 +22,19 @@ async function processBranch(
   params: Params
 ) {
   console.log(
-    "-> branch was last updated by " + branch.username + " on " + branch.date);
+    "-> branch was last updated by " +
+      branch.username +
+      " on " +
+      formatISO(branch.date)
+  );
 
   if (plan.action === "skip") {
     console.log(plan.reason);
     return;
   }
 
-
   if (plan.action === "mark stale") {
-    console.log(
-      "-> branch will be removed on " + formatISO(plan.cutoffTime)
-    );
+    console.log("-> branch will be removed on " + formatISO(plan.cutoffTime));
     console.log("-> marking branch as stale");
 
     if (params.isDryRun) {
@@ -55,17 +56,18 @@ async function processBranch(
   }
 
   console.log(
-    "-> branch was marked stale on " + plan.lastCommentTime);
+    "-> branch was marked stale on " + formatISO(plan.lastCommentTime)
+  );
 
   if (plan.action === "keep stale") {
-    console.log(
-      "-> branch will be removed on " + formatISO(plan.cutoffTime)
-    );
+    console.log("-> branch will be removed on " + formatISO(plan.cutoffTime));
     return;
   }
 
   if (plan.action === "remove") {
-    console.log("-> branch was slated for deletion on " + plan.cutoffTime);
+    console.log(
+      "-> branch was slated for deletion on " + formatISO(plan.cutoffTime)
+    );
     console.log("-> removing branch");
     if (params.isDryRun) {
       console.log("-> (doing nothing because of dry run flag)");
@@ -83,8 +85,13 @@ async function processBranch(
 type Plan =
   | { action: "skip"; reason: string }
   | { action: "mark stale"; cutoffTime: number }
-  | { action: "keep stale"; lastCommentTime: number, cutoffTime: number }
-  | { action: "remove"; lastCommentTime: number; cutoffTime: number; comments: Comment[] };
+  | { action: "keep stale"; lastCommentTime: number; cutoffTime: number }
+  | {
+      action: "remove";
+      lastCommentTime: number;
+      cutoffTime: number;
+      comments: Comment[];
+    };
 
 function skip(reason: string): Plan {
   return {
@@ -152,12 +159,24 @@ async function planBranchAction(
     return Math.max(commentDate, latestDate);
   }, 0);
 
-  const cutoffTime = addDays(latestStaleComment, params.daysBeforeBranchDelete).getTime();
+  const cutoffTime = addDays(
+    latestStaleComment,
+    params.daysBeforeBranchDelete
+  ).getTime();
   if (latestStaleComment <= filters.removeCutoff) {
-    return { action: "keep stale", cutoffTime, lastCommentTime: latestStaleComment };
+    return {
+      action: "keep stale",
+      cutoffTime,
+      lastCommentTime: latestStaleComment,
+    };
   }
 
-  return { action: "remove", comments, cutoffTime, lastCommentTime: latestStaleComment };
+  return {
+    action: "remove",
+    comments,
+    cutoffTime,
+    lastCommentTime: latestStaleComment,
+  };
 }
 
 export async function removeStaleBranches(
@@ -180,10 +199,7 @@ export async function removeStaleBranches(
   const branchRegex = params.protectedBranchesRegex
     ? new RegExp(params.protectedBranchesRegex)
     : null;
-  const repo = {
-    repo: params.repo.repo,
-    owner: params.repo.owner,
-  };
+  const repo = params.repo;
 
   const filters: BranchFilters = {
     staleCutoff,
