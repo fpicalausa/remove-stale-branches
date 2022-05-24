@@ -163,7 +163,7 @@ async function planBranchAction(
     latestStaleComment,
     params.daysBeforeBranchDelete
   ).getTime();
-  if (latestStaleComment <= filters.removeCutoff) {
+  if (latestStaleComment >= filters.removeCutoff) {
     return {
       action: "keep stale",
       cutoffTime,

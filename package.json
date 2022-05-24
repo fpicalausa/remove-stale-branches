@@ -1,7 +1,7 @@
 {
   "name": "remove-stale-branches",
   "private": true,
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "Cleanup stale branches from a repository",
   "main": "src/index.ts",
   "author": "Francois Picalausa <fpicalausa@gmail.com>",

@@ -31717,7 +31717,7 @@ function planBranchAction(now, branch, filters, commitComments, params) {
             return Math.max(commentDate, latestDate);
         }, 0);
         const cutoffTime = (0, date_fns_1.addDays)(latestStaleComment, params.daysBeforeBranchDelete).getTime();
-        if (latestStaleComment <= filters.removeCutoff) {
+        if (latestStaleComment >= filters.removeCutoff) {
             return {
                 action: "keep stale",
                 cutoffTime,
