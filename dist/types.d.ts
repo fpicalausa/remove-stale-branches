@@ -4,7 +4,7 @@ export declare type Branch = {
     branchName: string;
     prefix: string;
     commitId: string;
-    username: string;
+    username: string | null;
     isProtected: boolean;
 };
 export declare type Repo = {

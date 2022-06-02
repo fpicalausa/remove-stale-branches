@@ -23,7 +23,7 @@ async function processBranch(
 ) {
   console.log(
     "-> branch was last updated by " +
-      branch.username +
+      (branch.username || "(unknown user)") +
       " on " +
       formatISO(branch.date)
   );
@@ -126,7 +126,11 @@ async function planBranchAction(
     );
   }
 
-  if (filters.authorsRegex && filters.authorsRegex.test(branch.username)) {
+  if (
+    filters.authorsRegex &&
+    branch.username &&
+    filters.authorsRegex.test(branch.username)
+  ) {
     return skip(`author ${branch.username} is exempted`);
   }
 

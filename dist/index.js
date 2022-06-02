@@ -31317,12 +31317,13 @@ class TaggedCommitComments {
         this.headers = headers;
     }
     static formatCommentMessage(messageTemplate, branch, config, repo) {
+        const username = branch.username || "(Unknown user)";
         return messageTemplate
             .replace(/[{]branchName[}]/g, branch.branchName)
             .replace(/[{]branchUrl[}]/g, `https://github.com/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/tree/${encodeURIComponent(branch.branchName)}`)
             .replace(/[{]repoOwner[}]/g, repo.owner)
             .replace(/[{]repoName[}]/g, repo.repo)
-            .replace(/[{]author[}]/g, branch.username)
+            .replace(/[{]author[}]/g, username)
             .replace(/[{]daysBeforeBranchStale[}]/g, String(config.daysBeforeBranchStale))
             .replace(/[{]daysBeforeBranchDelete[}]/g, String(config.daysBeforeBranchDelete));
     }
@@ -31555,7 +31556,9 @@ function readBranches(octokit, headers, repo, organization) {
             const { repository: { refs: { edges, pageInfo }, }, } = yield __await(octokit.graphql(organization ? GRAPHQL_QUERY_WITH_ORG : GRAPHQL_QUERY, params));
             for (let i = 0; i < edges.length; ++i) {
                 const ref = edges[i];
-                const { node: { branchName, prefix, refUpdateRule, target: { oid, author: { date, user: { login, organization }, }, }, }, } = ref;
+                const { node: { branchName, prefix, refUpdateRule, target: { oid, author: { date, user }, }, }, } = ref;
+                const login = user ? user.login : null;
+                const organization = user ? user.organization.id : null;
                 yield yield __await({
                     date: Date.parse(date),
                     branchName,
@@ -31633,7 +31636,7 @@ const date_fns_1 = __nccwpck_require__(3314);
 function processBranch(plan, branch, commitComments, params) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("-> branch was last updated by " +
-            branch.username +
+            (branch.username || "(unknown user)") +
             " on " +
             (0, formatISO_1.default)(branch.date));
         if (plan.action === "skip") {
@@ -31693,7 +31696,9 @@ function planBranchAction(now, branch, filters, commitComments, params) {
         if (params.protectedOrganizationName && branch.belongsToOrganization) {
             return skip(`author ${branch.username} belongs to protected organization ${params.protectedOrganizationName}`);
         }
-        if (filters.authorsRegex && filters.authorsRegex.test(branch.username)) {
+        if (filters.authorsRegex &&
+            branch.username &&
+            filters.authorsRegex.test(branch.username)) {
             return skip(`author ${branch.username} is exempted`);
         }
         if (filters.branchRegex && filters.branchRegex.test(branch.branchName)) {

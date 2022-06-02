@@ -34,6 +34,7 @@ export class TaggedCommitComments {
     config: Pick<Params, "daysBeforeBranchStale" | "daysBeforeBranchDelete">,
     repo: Repo
   ) {
+    const username = branch.username || "(Unknown user)";
     return messageTemplate
       .replace(/[{]branchName[}]/g, branch.branchName)
       .replace(
@@ -46,7 +47,7 @@ export class TaggedCommitComments {
       )
       .replace(/[{]repoOwner[}]/g, repo.owner)
       .replace(/[{]repoName[}]/g, repo.repo)
-      .replace(/[{]author[}]/g, branch.username)
+      .replace(/[{]author[}]/g, username)
       .replace(
         /[{]daysBeforeBranchStale[}]/g,
         String(config.daysBeforeBranchStale)

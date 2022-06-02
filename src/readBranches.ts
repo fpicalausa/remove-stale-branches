@@ -113,14 +113,13 @@ export async function* readBranches(
           refUpdateRule,
           target: {
             oid,
-            author: {
-              date,
-              user: { login, organization },
-            },
+            author: { date, user },
           },
         },
       } = ref;
 
+      const login = user ? user.login : null;
+      const organization = user ? user.organization.id : null;
       yield {
         date: Date.parse(date),
         branchName,
