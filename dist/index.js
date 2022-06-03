@@ -31548,6 +31548,7 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
   }
 }`;
 function readBranches(octokit, headers, repo, organization) {
+    var _a;
     return __asyncGenerator(this, arguments, function* readBranches_1() {
         let pagination = { hasNextPage: true, endCursor: null };
         while (pagination.hasNextPage) {
@@ -31558,7 +31559,7 @@ function readBranches(octokit, headers, repo, organization) {
                 const ref = edges[i];
                 const { node: { branchName, prefix, refUpdateRule, target: { oid, author: { date, user }, }, }, } = ref;
                 const login = user ? user.login : null;
-                const organization = user ? user.organization.id : null;
+                const organization = (_a = user === null || user === void 0 ? void 0 : user.organization) === null || _a === void 0 ? void 0 : _a.id;
                 yield yield __await({
                     date: Date.parse(date),
                     branchName,

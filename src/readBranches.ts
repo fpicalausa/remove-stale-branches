@@ -119,7 +119,7 @@ export async function* readBranches(
       } = ref;
 
       const login = user ? user.login : null;
-      const organization = user ? user.organization.id : null;
+      const organization = user?.organization?.id;
       yield {
         date: Date.parse(date),
         branchName,
