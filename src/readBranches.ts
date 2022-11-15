@@ -11,7 +11,7 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
     ) {
       edges {
         node {
-          branchName: name
+          name
           prefix
           ... on Ref {
             refUpdateRule {
@@ -48,7 +48,7 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
     ) {
       edges {
         node {
-          branchName: name
+          name
           prefix
           ... on Ref {
             refUpdateRule {
@@ -79,13 +79,78 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
   }
 }`;
 
+type PageInfo = { endCursor: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null };
+
+type Page<N, E> = {
+  edges: E[],
+  nodes: N[],
+  pageInfo: PageInfo,
+  totalCount: number
+}
+
+type GitObjectID = string;
+
+type Blob = {}
+type Tag = {}
+type Tree = {}
+
+type GitTimeStamp = string;
+
+type Organization = {
+  id: unknown
+}
+
+type User = {
+  email: string
+  login: string
+  organization: Organization | null
+}
+
+type GitActor = {
+  email: string | null,
+  name: string | null
+  user: User | null,
+  date: GitTimeStamp
+}
+
+type Commit = {
+  author: GitActor
+}
+
+type GitOject = {
+  id: unknown
+  oid: GitObjectID
+} & (Commit | Blob | Tag | Tree)
+
+
+type Ref = {
+  id: unknown,
+  name: string,
+  prefix: string
+  refUpdateRule: unknown | null
+  target: GitOject
+}
+
+type RefEdge = {
+  cursor: string,
+  node: Ref
+}
+
+
+type RefConnection = Page<Ref, RefEdge>
+
+
+type Repository = {
+  refs: RefConnection
+}
+
 export async function* readBranches(
   octokit: Octokit,
   headers: { [key: string]: string },
   repo: Repo,
   organization?: string
 ): AsyncGenerator<Branch> {
-  let pagination = { hasNextPage: true, endCursor: null };
+  let pagination: PageInfo = { hasNextPage: true, endCursor: null, hasPreviousPage: false, startCursor: null };
 
   while (pagination.hasNextPage) {
     const params = {
@@ -99,7 +164,7 @@ export async function* readBranches(
       repository: {
         refs: { edges, pageInfo },
       },
-    } = await octokit.graphql(
+    } = await octokit.graphql<{repository: Repository}>(
       organization ? GRAPHQL_QUERY_WITH_ORG : GRAPHQL_QUERY,
       params
     );
@@ -107,22 +172,18 @@ export async function* readBranches(
     for (let i = 0; i < edges.length; ++i) {
       const ref = edges[i];
       const {
-        node: {
-          branchName,
+          name,
           prefix,
           refUpdateRule,
-          target: {
-            oid,
-            author: { date, user },
-          },
-        },
-      } = ref;
+      } = ref.node;
+
+      const { oid, author: { date, user } } = ref.node.target as (GitOject & Commit)
 
       const login = user ? user.login : null;
       const organization = user?.organization?.id;
       yield {
         date: Date.parse(date),
-        branchName,
+        branchName: name,
         prefix,
         commitId: oid,
         username: login,
