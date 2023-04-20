@@ -34126,10 +34126,12 @@ class TaggedCommitComments {
         this.headers = headers;
     }
     static formatCommentMessage(messageTemplate, branch, config, repo) {
+        var _a;
+        const serverUrl = (_a = process.env.GITHUB_SERVER_URL) !== null && _a !== void 0 ? _a : "https://github.com";
         const username = branch.username || "(Unknown user)";
         return messageTemplate
             .replace(/[{]branchName[}]/g, branch.branchName)
-            .replace(/[{]branchUrl[}]/g, `https://github.com/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/tree/${encodeURIComponent(branch.branchName)}`)
+            .replace(/[{]branchUrl[}]/g, `${serverUrl}/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/tree/${encodeURIComponent(branch.branchName)}`)
             .replace(/[{]repoOwner[}]/g, repo.owner)
             .replace(/[{]repoName[}]/g, repo.repo)
             .replace(/[{]author[}]/g, username)
