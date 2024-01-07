@@ -34466,7 +34466,7 @@ const readBranches_1 = __nccwpck_require__(2996);
 const core = __importStar(__nccwpck_require__(2186));
 const date_fns_1 = __nccwpck_require__(3314);
 function processBranch(plan, branch, commitComments, params) {
-    var _a, _b;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         console.log("-> branch was last updated by " +
             (((_a = branch.author) === null || _a === void 0 ? void 0 : _a.username) || ((_b = branch.author) === null || _b === void 0 ? void 0 : _b.email) || "(unknown user)") +
@@ -34478,7 +34478,7 @@ function processBranch(plan, branch, commitComments, params) {
         }
         if (plan.action === "mark stale") {
             console.log("-> branch will be removed on " + (0, formatISO_1.default)(plan.cutoffTime));
-            console.log("-> marking branch as stale");
+            console.log("-> marking branch as stale (notifying: " + (((_c = branch.author) === null || _c === void 0 ? void 0 : _c.username) || params.defaultRecipient) + ")");
             if (params.isDryRun) {
                 console.log("-> (doing nothing because of dry run flag)");
                 return;
@@ -34575,6 +34575,7 @@ function planBranchAction(now, branch, filters, commitComments, params) {
 }
 function removeStaleBranches(octokit, params) {
     var e_1, _a;
+    var _b;
     return __awaiter(this, void 0, void 0, function* () {
         const headers = params.githubToken
             ? {
@@ -34617,13 +34618,13 @@ function removeStaleBranches(octokit, params) {
             skip: "✅",
         };
         try {
-            for (var _b = __asyncValues((0, readBranches_1.readBranches)(octokit, headers, repo, params.protectedOrganizationName)), _c; _c = yield _b.next(), !_c.done;) {
-                const branch = _c.value;
-                if (!branch.author && !params.ignoreUnknownAuthors) {
+            for (var _c = __asyncValues((0, readBranches_1.readBranches)(octokit, headers, repo, params.protectedOrganizationName)), _d; _d = yield _c.next(), !_d.done;) {
+                const branch = _d.value;
+                if (!((_b = branch.author) === null || _b === void 0 ? void 0 : _b.username) && !params.ignoreUnknownAuthors) {
                     console.error("🛑 Failed to find author associated with branch " +
                         branch.branchName +
                         ". Use ignore-unknown-authors if this is expected.");
-                    throw new Error("Failed to find author for branch");
+                    throw new Error("Failed to find author for branch " + branch.branchName);
                 }
                 const plan = yield planBranchAction(now.getTime(), branch, filters, commitComments, params);
                 core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);
@@ -34645,7 +34646,7 @@ function removeStaleBranches(octokit, params) {
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
-                if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
+                if (_d && !_d.done && (_a = _c.return)) yield _a.call(_c);
             }
             finally { if (e_1) throw e_1.error; }
         }
