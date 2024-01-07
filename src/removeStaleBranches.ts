@@ -35,7 +35,7 @@ async function processBranch(
 
   if (plan.action === "mark stale") {
     console.log("-> branch will be removed on " + formatISO(plan.cutoffTime));
-    console.log("-> marking branch as stale");
+    console.log("-> marking branch as stale (notifying: " + (branch.author?.username || params.defaultRecipient) + ")");
 
     if (params.isDryRun) {
       console.log("-> (doing nothing because of dry run flag)");
@@ -251,13 +251,13 @@ export async function removeStaleBranches(
     repo,
     params.protectedOrganizationName
   )) {
-    if (!branch.author && !params.ignoreUnknownAuthors) {
+    if (!branch.author?.username && !params.ignoreUnknownAuthors) {
       console.error(
         "🛑 Failed to find author associated with branch " +
           branch.branchName +
           ". Use ignore-unknown-authors if this is expected."
       );
-      throw new Error("Failed to find author for branch");
+      throw new Error("Failed to find author for branch " + branch.branchName);
     }
 
     const plan = await planBranchAction(
