@@ -88,6 +88,13 @@ This action notifies users through a commit comment. There are pros and cons to 
 
 To start, install dependencies with `npm install`. The source files live under `src`.
 
-You can run the tool locally with `ts-node src/cli.ts` 🖥️
+You can run the tool locally by:
+1. Set `GITHUB_TOKEN` in a .env file with a PAT with correct access 
+2. Edit `src/cli.ts` as needed to poin to the correct repo
+3. Run `src/cli.ts` under `ts-node` as follows:
+
+    ```shell
+    source .env && npx ts-node src/cli.ts
+    ```
 
 To deploy you changes, start a PR. Don't forget to run `npm run build` and include changes to the `dist` dir in your commit.
