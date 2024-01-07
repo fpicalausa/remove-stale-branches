@@ -1,10 +1,13 @@
 export type Branch = {
   date: number;
-  belongsToOrganization: boolean;
   branchName: string;
   prefix: string;
   commitId: string;
-  username: string | null;
+  author: {
+    username: string | null;
+    email: string | null;
+    belongsToOrganization: boolean;
+  } | null;
   isProtected: boolean;
 };
 
@@ -25,4 +28,6 @@ export type Params = {
   exemptProtectedBranches: boolean;
   operationsPerRun: number;
   repo: Repo;
+  ignoreUnknownAuthors: boolean;
+  defaultRecipient: string | null;
 };

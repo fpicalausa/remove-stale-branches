@@ -34,6 +34,13 @@ async function run(): Promise<void> {
     core.getInput("operations-per-run", { required: false })
   );
 
+  const defaultRecipient =
+    core.getInput("default-recipient", { required: false }) ?? "";
+
+  const ignoreUnknownAuthors = core.getBooleanInput("ignore-unknown-authors", {
+    required: false,
+  });
+
   return removeStaleBranches(octokit, {
     isDryRun,
     repo: github.context.repo,
@@ -45,6 +52,8 @@ async function run(): Promise<void> {
     protectedOrganizationName,
     exemptProtectedBranches,
     operationsPerRun,
+    defaultRecipient,
+    ignoreUnknownAuthors,
   });
 }
 

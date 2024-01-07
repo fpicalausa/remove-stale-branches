@@ -43,3 +43,11 @@ inputs:
     description: "Maximum number of stale branches to look at in any run of this action."
     default: "10"
     required: false
+  ignore-unknown-authors:
+    description: "Whether to abort early when a commit author cannot be identified. By default, stop early since this may indicate that the token used to run the action doesn't have the right privileges. Set to true and define a default recipient instead if not a concern."
+    default: "false"
+    required: false
+  default-recipient:
+    description: "A string corresponding to the username to be tagged on stale branches from unknown authors"
+    default: ""
+    required: false
