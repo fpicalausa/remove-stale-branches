@@ -31,20 +31,22 @@ export class TaggedCommitComments {
   static formatCommentMessage(
     messageTemplate: string,
     branch: Branch,
-    config: Pick<Params, "daysBeforeBranchStale" | "daysBeforeBranchDelete">,
+    config: Pick<
+      Params,
+      "daysBeforeBranchStale" | "daysBeforeBranchDelete" | "defaultRecipient"
+    >,
     repo: Repo
   ) {
-    const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com"
-    const username = branch.username || "(Unknown user)";
+    const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
+    const username =
+      branch.author?.username || config.defaultRecipient || "(Unknown user)";
     return messageTemplate
       .replace(/[{]branchName[}]/g, branch.branchName)
       .replace(
         /[{]branchUrl[}]/g,
-        `${serverUrl}/${encodeURIComponent(
-          repo.owner
-        )}/${encodeURIComponent(repo.repo)}/tree/${encodeURIComponent(
-          branch.branchName
-        )}`
+        `${serverUrl}/${encodeURIComponent(repo.owner)}/${encodeURIComponent(
+          repo.repo
+        )}/tree/${encodeURIComponent(branch.branchName)}`
       )
       .replace(/[{]repoOwner[}]/g, repo.owner)
       .replace(/[{]repoName[}]/g, repo.repo)

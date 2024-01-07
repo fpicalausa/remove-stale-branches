@@ -17,7 +17,7 @@ export declare class TaggedCommitComments {
     private readonly octokit;
     private readonly headers;
     constructor(repo: Repo, octokit: Octokit, headers: any);
-    static formatCommentMessage(messageTemplate: string, branch: Branch, config: Pick<Params, "daysBeforeBranchStale" | "daysBeforeBranchDelete">, repo: Repo): string;
+    static formatCommentMessage(messageTemplate: string, branch: Branch, config: Pick<Params, "daysBeforeBranchStale" | "daysBeforeBranchDelete" | "defaultRecipient">, repo: Repo): string;
     getCommitCommentsWithTag({ commentTag, commitSHA, }: Commit & CommentTag): Promise<{
         html_url: string;
         url: string;

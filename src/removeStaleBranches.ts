@@ -23,7 +23,7 @@ async function processBranch(
 ) {
   console.log(
     "-> branch was last updated by " +
-      (branch.username || "(unknown user)") +
+      (branch.author?.username || branch.author?.email || "(unknown user)") +
       " on " +
       formatISO(branch.date)
   );
@@ -35,7 +35,7 @@ async function processBranch(
 
   if (plan.action === "mark stale") {
     console.log("-> branch will be removed on " + formatISO(plan.cutoffTime));
-    console.log("-> marking branch as stale");
+    console.log("-> marking branch as stale (notifying: " + (branch.author?.username || params.defaultRecipient) + ")");
 
     if (params.isDryRun) {
       console.log("-> (doing nothing because of dry run flag)");
@@ -120,18 +120,22 @@ async function planBranchAction(
   commitComments: TaggedCommitComments,
   params: Params
 ): Promise<Plan> {
-  if (params.protectedOrganizationName && branch.belongsToOrganization) {
+  if (
+    branch.author &&
+    params.protectedOrganizationName &&
+    branch.author.belongsToOrganization
+  ) {
     return skip(
-      `author ${branch.username} belongs to protected organization ${params.protectedOrganizationName}`
+      `author ${branch.author.username} belongs to protected organization ${params.protectedOrganizationName}`
     );
   }
 
   if (
     filters.authorsRegex &&
-    branch.username &&
-    filters.authorsRegex.test(branch.username)
+    branch.author?.username &&
+    filters.authorsRegex.test(branch.author.username)
   ) {
-    return skip(`author ${branch.username} is exempted`);
+    return skip(`author ${branch.author.username} is exempted`);
   }
 
   if (filters.branchRegex && filters.branchRegex.test(branch.branchName)) {
@@ -215,6 +219,13 @@ export async function removeStaleBranches(
   const commitComments = new TaggedCommitComments(repo, octokit, headers);
   let operations = 0;
 
+  if (params.ignoreUnknownAuthors && !params.defaultRecipient) {
+    console.error(
+      "When ignoring unknown authors, you must specify a default recipient"
+    );
+    return;
+  }
+
   if (params.isDryRun) {
     console.log("Running in dry-run mode. No branch will be removed.");
   }
@@ -240,6 +251,15 @@ export async function removeStaleBranches(
     repo,
     params.protectedOrganizationName
   )) {
+    if (!branch.author?.username && !params.ignoreUnknownAuthors) {
+      console.error(
+        "🛑 Failed to find author associated with branch " +
+          branch.branchName +
+          ". Use ignore-unknown-authors if this is expected."
+      );
+      throw new Error("Failed to find author for branch " + branch.branchName);
+    }
+
     const plan = await planBranchAction(
       now.getTime(),
       branch,
