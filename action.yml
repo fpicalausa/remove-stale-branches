@@ -2,7 +2,7 @@ name: "Remove Stale Branches"
 description: "Cleanup stale branches from a repository"
 author: "Francois Picalausa"
 runs:
-  using: "node16"
+  using: "node20"
   main: "dist/index.js"
 inputs:
   github-token:
