@@ -29,7 +29,7 @@ inputs:
     required: false
   stale-branch-message:
     description: "Template for commit comments notifying the author that their branch will be removed."
-    default: "@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last {daysBeforeBranchStale} days and is marked as stale. It will be removed in a {daysBeforeBranchDelete} days.\r\nIf you want to keep this branch around, add new commits to this branch or protect it."
+    default: "@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last {daysBeforeBranchStale} days and is marked as stale. It will be removed in {daysBeforeBranchDelete} days.\r\nIf you want to keep this branch around, add new commits to this branch or protect it."
     required: false
   days-before-branch-stale:
     description: "Number of days since the last commit before a branch is considered stale. Once stale, this action will leave a comment on the last commit, marking the branch as stale."
