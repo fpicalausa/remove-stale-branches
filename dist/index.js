@@ -34248,6 +34248,7 @@ function run() {
         const ignoreUnknownAuthors = core.getBooleanInput("ignore-unknown-authors", {
             required: false,
         });
+        const ignoreBranchesWithOpenPRs = core.getBooleanInput("ignore-branches-with-open-prs", { required: false });
         return (0, removeStaleBranches_1.removeStaleBranches)(octokit, {
             isDryRun,
             repo: github.context.repo,
@@ -34261,6 +34262,7 @@ function run() {
             operationsPerRun,
             defaultRecipient,
             ignoreUnknownAuthors,
+            ignoreBranchesWithOpenPRs,
         });
     });
 }
@@ -34299,6 +34301,11 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
       edges {
         node {
           name
+          associatedPullRequests(first: 10, states: OPEN) {
+            nodes {
+              state
+            }
+          }
           prefix
           ... on Ref {
             refUpdateRule {
@@ -34337,6 +34344,11 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
       edges {
         node {
           name
+          associatedPullRequests(first: 10, states: OPEN) {
+            nodes {
+              state
+            }
+          }
           prefix
           ... on Ref {
             refUpdateRule {
@@ -34382,7 +34394,7 @@ function readBranches(octokit, headers, repo, organization) {
             const { repository: { refs: { edges, pageInfo }, }, } = yield __await(octokit.graphql(organization ? GRAPHQL_QUERY_WITH_ORG : GRAPHQL_QUERY, params));
             for (let i = 0; i < edges.length; ++i) {
                 const ref = edges[i];
-                const { name, prefix, refUpdateRule } = ref.node;
+                const { name, prefix, refUpdateRule, associatedPullRequests } = ref.node;
                 const { oid, authoredDate, author } = ref.node.target;
                 let branchAuthor = null;
                 if (author) {
@@ -34399,6 +34411,7 @@ function readBranches(octokit, headers, repo, organization) {
                     commitId: oid,
                     author: branchAuthor,
                     isProtected: refUpdateRule !== null,
+                    openPrs: associatedPullRequests.nodes.length > 0,
                 });
             }
             pagination = pageInfo;
@@ -34478,7 +34491,9 @@ function processBranch(plan, branch, commitComments, params) {
         }
         if (plan.action === "mark stale") {
             console.log("-> branch will be removed on " + (0, formatISO_1.default)(plan.cutoffTime));
-            console.log("-> marking branch as stale (notifying: " + (((_c = branch.author) === null || _c === void 0 ? void 0 : _c.username) || params.defaultRecipient) + ")");
+            console.log("-> marking branch as stale (notifying: " +
+                (((_c = branch.author) === null || _c === void 0 ? void 0 : _c.username) || params.defaultRecipient) +
+                ")");
             if (params.isDryRun) {
                 console.log("-> (doing nothing because of dry run flag)");
                 return;
@@ -34531,6 +34546,9 @@ function planBranchAction(now, branch, filters, commitComments, params) {
             params.protectedOrganizationName &&
             branch.author.belongsToOrganization) {
             return skip(`author ${branch.author.username} belongs to protected organization ${params.protectedOrganizationName}`);
+        }
+        if (branch.openPrs && params.ignoreBranchesWithOpenPRs) {
+            return skip(`branch ${branch.branchName} has open PRs`);
         }
         if (filters.authorsRegex &&
             ((_a = branch.author) === null || _a === void 0 ? void 0 : _a.username) &&

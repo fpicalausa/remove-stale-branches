@@ -25,6 +25,7 @@ removeStaleBranches(octokit, {
     owner: "github",
     repo: "octocat",
   },
+  ignoreBranchesWithOpenPRs: false,
 })
   .then(() => clearTimeout(timer))
   .catch((e) => console.log(e));

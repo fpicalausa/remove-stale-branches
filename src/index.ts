@@ -41,6 +41,11 @@ async function run(): Promise<void> {
     required: false,
   });
 
+  const ignoreBranchesWithOpenPRs = core.getBooleanInput(
+    "ignore-branches-with-open-prs",
+    { required: false }
+  );
+
   return removeStaleBranches(octokit, {
     isDryRun,
     repo: github.context.repo,
@@ -54,6 +59,7 @@ async function run(): Promise<void> {
     operationsPerRun,
     defaultRecipient,
     ignoreUnknownAuthors,
+    ignoreBranchesWithOpenPRs,
   });
 }
 

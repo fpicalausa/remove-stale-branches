@@ -35,7 +35,11 @@ async function processBranch(
 
   if (plan.action === "mark stale") {
     console.log("-> branch will be removed on " + formatISO(plan.cutoffTime));
-    console.log("-> marking branch as stale (notifying: " + (branch.author?.username || params.defaultRecipient) + ")");
+    console.log(
+      "-> marking branch as stale (notifying: " +
+        (branch.author?.username || params.defaultRecipient) +
+        ")"
+    );
 
     if (params.isDryRun) {
       console.log("-> (doing nothing because of dry run flag)");
@@ -128,6 +132,10 @@ async function planBranchAction(
     return skip(
       `author ${branch.author.username} belongs to protected organization ${params.protectedOrganizationName}`
     );
+  }
+
+  if (branch.openPrs && params.ignoreBranchesWithOpenPRs) {
+    return skip(`branch ${branch.branchName} has open PRs`);
   }
 
   if (

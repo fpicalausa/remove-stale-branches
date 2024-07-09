@@ -51,3 +51,7 @@ inputs:
     description: "A string corresponding to the username to be tagged on stale branches from unknown authors"
     default: ""
     required: false
+  ignore-branches-with-open-prs:
+    description: "Whether to ignore branches with open pull requests."
+    default: "false"
+    required: false
