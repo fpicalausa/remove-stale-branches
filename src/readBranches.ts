@@ -55,7 +55,7 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
       edges {
         node {
           name
-          associatedPullRequests(first: 10, states: OPEN) {
+          associatedPullRequests(first: 1, states: OPEN) {
             nodes {
               state
             }

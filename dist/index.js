@@ -34301,7 +34301,7 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
       edges {
         node {
           name
-          associatedPullRequests(first: 10, states: OPEN) {
+          associatedPullRequests(first: 1, states: OPEN) {
             nodes {
               state
             }
@@ -34344,7 +34344,7 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
       edges {
         node {
           name
-          associatedPullRequests(first: 10, states: OPEN) {
+          associatedPullRequests(first: 1, states: OPEN) {
             nodes {
               state
             }
