@@ -3,6 +3,7 @@ export declare type Branch = {
     branchName: string;
     prefix: string;
     commitId: string;
+    openPrs: boolean;
     author: {
         username: string | null;
         email: string | null;
@@ -28,4 +29,5 @@ export declare type Params = {
     repo: Repo;
     ignoreUnknownAuthors: boolean;
     defaultRecipient: string | null;
+    ignoreBranchesWithOpenPRs: boolean;
 };

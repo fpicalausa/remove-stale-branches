@@ -12,6 +12,11 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
       edges {
         node {
           name
+          associatedPullRequests(first: 1, states: OPEN) {
+            nodes {
+              state
+            }
+          }
           prefix
           ... on Ref {
             refUpdateRule {
@@ -50,6 +55,11 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
       edges {
         node {
           name
+          associatedPullRequests(first: 1, states: OPEN) {
+            nodes {
+              state
+            }
+          }
           prefix
           ... on Ref {
             refUpdateRule {
@@ -132,6 +142,13 @@ type GitOject = {
 type Ref = {
   id: unknown;
   name: string;
+  associatedPullRequests: {
+    nodes: [
+      {
+        state: "OPEN";
+      }
+    ];
+  };
   prefix: string;
   refUpdateRule: unknown | null;
   target: GitOject;
@@ -180,7 +197,7 @@ export async function* readBranches(
 
     for (let i = 0; i < edges.length; ++i) {
       const ref = edges[i];
-      const { name, prefix, refUpdateRule } = ref.node;
+      const { name, prefix, refUpdateRule, associatedPullRequests } = ref.node;
 
       const { oid, authoredDate, author } = ref.node.target as GitOject &
         Commit;
@@ -201,6 +218,7 @@ export async function* readBranches(
         commitId: oid,
         author: branchAuthor,
         isProtected: refUpdateRule !== null,
+        openPrs: associatedPullRequests.nodes.length > 0,
       };
     }
     pagination = pageInfo;
