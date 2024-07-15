@@ -163,7 +163,7 @@ async function planBranchAction(
   }
 
   const comments = await getCommitCommentsForBranch(commitComments, branch);
-  if (comments.length == 0) {
+  if (comments.length == 0 && params.daysBeforeBranchDelete !== 0) {
     return {
       action: "mark stale",
       cutoffTime: addDays(now, params.daysBeforeBranchDelete).getTime(),
@@ -242,9 +242,14 @@ export async function removeStaleBranches(
     `Branches updated before ${formatISO(staleCutoff)} will be marked as stale`
   );
 
-  console.log(
-    `Branches marked stale before ${formatISO(removeCutoff)} will be removed`
-  );
+  if (params.daysBeforeBranchDelete == 0) {
+    console.log("Branches will be instantly removed due to days-before-branch-delete being set to 0.")
+  } else {
+    console.log(
+      `Branches marked stale before ${formatISO(removeCutoff)} will be removed`
+    );
+  }
+
 
   const icons: Record<Plan["action"], string> = {
     remove: "❌",
