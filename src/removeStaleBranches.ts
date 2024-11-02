@@ -195,6 +195,30 @@ async function planBranchAction(
   };
 }
 
+function logActionRunConfiguration(
+  params: Params,
+  staleCutoff: number,
+  removeCutoff: number
+) {
+  if (params.isDryRun) {
+    console.log("Running in dry-run mode. No branch will be removed.");
+  }
+
+  console.log(
+    `Branches updated before ${formatISO(staleCutoff)} will be marked as stale`
+  );
+
+  if (params.daysBeforeBranchDelete == 0) {
+    console.log(
+      "Branches will be instantly removed due to days-before-branch-delete being set to 0."
+    );
+  } else {
+    console.log(
+      `Branches marked stale before ${formatISO(removeCutoff)} will be removed`
+    );
+  }
+}
+
 export async function removeStaleBranches(
   octokit: Octokit,
   params: Params
@@ -226,6 +250,13 @@ export async function removeStaleBranches(
   };
   const commitComments = new TaggedCommitComments(repo, octokit, headers);
   let operations = 0;
+  let summary: Record<Plan["action"], number> & { scanned: number } = {
+    remove: 0,
+    "mark stale": 0,
+    "keep stale": 0,
+    skip: 0,
+    scanned: 0,
+  };
 
   if (params.ignoreUnknownAuthors && !params.defaultRecipient) {
     console.error(
@@ -234,29 +265,14 @@ export async function removeStaleBranches(
     return;
   }
 
-  if (params.isDryRun) {
-    console.log("Running in dry-run mode. No branch will be removed.");
-  }
-
-  console.log(
-    `Branches updated before ${formatISO(staleCutoff)} will be marked as stale`
-  );
-
-  if (params.daysBeforeBranchDelete == 0) {
-    console.log("Branches will be instantly removed due to days-before-branch-delete being set to 0.")
-  } else {
-    console.log(
-      `Branches marked stale before ${formatISO(removeCutoff)} will be removed`
-    );
-  }
-
+  logActionRunConfiguration(params, staleCutoff, removeCutoff);
 
   const icons: Record<Plan["action"], string> = {
     remove: "❌",
     "mark stale": "✏",
     "keep stale": "😐",
     skip: "✅",
-  };
+  } as const;
 
   for await (const branch of readBranches(
     octokit,
@@ -264,6 +280,7 @@ export async function removeStaleBranches(
     repo,
     params.protectedOrganizationName
   )) {
+    summary.scanned++;
     if (!branch.author?.username && !params.ignoreUnknownAuthors) {
       console.error(
         "🛑 Failed to find author associated with branch " +
@@ -280,6 +297,7 @@ export async function removeStaleBranches(
       commitComments,
       params
     );
+    summary[plan.action]++;
     core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);
     try {
       await processBranch(plan, branch, commitComments, params);
@@ -292,8 +310,17 @@ export async function removeStaleBranches(
     }
 
     if (operations >= params.operationsPerRun) {
-      console.log("Exiting after " + operations + " operations");
+      console.log("Stopping after " + operations + " operations");
       return;
     }
   }
+
+  const actionSummary = [
+    `${summary.scanned} scanned`,
+    `${icons.skip} ${summary.skip} skipped`,
+    `${icons["mark stale"]} ${summary["mark stale"]} marked stale`,
+    `${icons["keep stale"]} ${summary["keep stale"]} kept stale`,
+    `${icons.remove} ${summary.remove} removed`,
+  ].join(", ");
+  console.log(`Summary:  ${actionSummary}`);
 }
