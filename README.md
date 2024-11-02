@@ -105,7 +105,7 @@ To start, install dependencies with `npm install`. The source files live under `
 
 You can run the tool locally by:
 1. Set `GITHUB_TOKEN` in a .env file with a PAT with correct access 
-2. Edit `src/cli.ts` as needed to poin to the correct repo
+2. Edit `src/cli.ts` as needed to point to the correct repo
 3. Run `src/cli.ts` under `ts-node` as follows:
 
     ```shell
