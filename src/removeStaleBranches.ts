@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/core";
-import formatISO from "date-fns/formatISO";
-import subDays from "date-fns/subDays";
+import { formatISO } from "date-fns/formatISO";
+import { subDays } from "date-fns/subDays";
 import { TaggedCommitComments } from "./commitComments";
 import { Branch, Params } from "./types";
 import { readBranches } from "./readBranches";

@@ -1,7 +1,7 @@
 {
   "name": "remove-stale-branches",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Cleanup stale branches from a repository",
   "main": "src/index.ts",
   "author": "Francois Picalausa <fpicalausa@gmail.com>",
@@ -9,12 +9,13 @@
   "scripts": {
     "build": "ncc build src/index.ts",
     "test": "jest",
-    "prettier:write": "prettier --write 'src/*.ts'"
+    "prettier:write": "prettier --write \"src/*.ts\"",
+    "cli": "ts-node src/cli.ts"
   },
   "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@actions/github": "^5.1.1",
-    "date-fns": "^2.30.0"
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "date-fns": "^4.1.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
