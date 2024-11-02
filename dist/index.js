@@ -30392,6 +30392,18 @@ function planBranchAction(now, branch, filters, commitComments, params) {
         };
     });
 }
+function logActionRunConfiguration(params, staleCutoff, removeCutoff) {
+    if (params.isDryRun) {
+        console.log("Running in dry-run mode. No branch will be removed.");
+    }
+    console.log(`Branches updated before ${(0, formatISO_1.formatISO)(staleCutoff)} will be marked as stale`);
+    if (params.daysBeforeBranchDelete == 0) {
+        console.log("Branches will be instantly removed due to days-before-branch-delete being set to 0.");
+    }
+    else {
+        console.log(`Branches marked stale before ${(0, formatISO_1.formatISO)(removeCutoff)} will be removed`);
+    }
+}
 function removeStaleBranches(octokit, params) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, e_1, _b, _c;
@@ -30421,20 +30433,18 @@ function removeStaleBranches(octokit, params) {
         };
         const commitComments = new commitComments_1.TaggedCommitComments(repo, octokit, headers);
         let operations = 0;
+        let summary = {
+            remove: 0,
+            "mark stale": 0,
+            "keep stale": 0,
+            skip: 0,
+            scanned: 0,
+        };
         if (params.ignoreUnknownAuthors && !params.defaultRecipient) {
             console.error("When ignoring unknown authors, you must specify a default recipient");
             return;
         }
-        if (params.isDryRun) {
-            console.log("Running in dry-run mode. No branch will be removed.");
-        }
-        console.log(`Branches updated before ${(0, formatISO_1.formatISO)(staleCutoff)} will be marked as stale`);
-        if (params.daysBeforeBranchDelete == 0) {
-            console.log("Branches will be instantly removed due to days-before-branch-delete being set to 0.");
-        }
-        else {
-            console.log(`Branches marked stale before ${(0, formatISO_1.formatISO)(removeCutoff)} will be removed`);
-        }
+        logActionRunConfiguration(params, staleCutoff, removeCutoff);
         const icons = {
             remove: "❌",
             "mark stale": "✏",
@@ -30446,6 +30456,7 @@ function removeStaleBranches(octokit, params) {
                 _c = _g.value;
                 _e = false;
                 const branch = _c;
+                summary.scanned++;
                 if (!((_d = branch.author) === null || _d === void 0 ? void 0 : _d.username) && !params.ignoreUnknownAuthors) {
                     console.error("🛑 Failed to find author associated with branch " +
                         branch.branchName +
@@ -30453,6 +30464,7 @@ function removeStaleBranches(octokit, params) {
                     throw new Error("Failed to find author for branch " + branch.branchName);
                 }
                 const plan = yield planBranchAction(now.getTime(), branch, filters, commitComments, params);
+                summary[plan.action]++;
                 core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);
                 try {
                     yield processBranch(plan, branch, commitComments, params);
@@ -30464,7 +30476,7 @@ function removeStaleBranches(octokit, params) {
                     core.endGroup();
                 }
                 if (operations >= params.operationsPerRun) {
-                    console.log("Exiting after " + operations + " operations");
+                    console.log("Stopping after " + operations + " operations");
                     return;
                 }
             }
@@ -30476,6 +30488,14 @@ function removeStaleBranches(octokit, params) {
             }
             finally { if (e_1) throw e_1.error; }
         }
+        const actionSummary = [
+            `${summary.scanned} scanned`,
+            `${icons.skip} ${summary.skip} skipped`,
+            `${icons["mark stale"]} ${summary["mark stale"]} marked stale`,
+            `${icons["keep stale"]} ${summary["keep stale"]} kept stale`,
+            `${icons.remove} ${summary.remove} removed`,
+        ].join(", ");
+        console.log(`Summary:  ${actionSummary}`);
     });
 }
 
