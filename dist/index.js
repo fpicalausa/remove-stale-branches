@@ -30468,7 +30468,7 @@ function removeStaleBranches(octokit, params) {
                 core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);
                 try {
                     yield processBranch(plan, branch, commitComments, params);
-                    if (plan.action !== "skip") {
+                    if (plan.action !== "skip" && plan.action != "keep stale") {
                         operations++;
                     }
                 }
