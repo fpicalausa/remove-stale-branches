@@ -302,7 +302,7 @@ export async function removeStaleBranches(
     try {
       await processBranch(plan, branch, commitComments, params);
 
-      if (plan.action !== "skip") {
+      if (plan.action !== "skip" && plan.action != "keep stale") {
         operations++;
       }
     } finally {
