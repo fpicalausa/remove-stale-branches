@@ -47,6 +47,10 @@ async function processBranch(
     }
 
     const commentTag = "stale:" + branch.branchName;
+
+    // Wait a bit to avoid rate limits
+    await new Promise(r => setTimeout(r, 1500));
+
     return await commitComments.addCommitComments({
       commentTag,
       commitSHA: branch.commitId,
@@ -77,6 +81,9 @@ async function processBranch(
       console.log("-> (doing nothing because of dry run flag)");
       return;
     }
+
+    // Wait a bit to avoid rate limits
+    await new Promise(r => setTimeout(r, 2000));
 
     commitComments.deleteBranch(branch);
 
