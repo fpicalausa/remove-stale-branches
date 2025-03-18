@@ -34,11 +34,17 @@ async function processBranch(
   }
 
   if (plan.action === "mark stale") {
+    let author = "";
     console.log("-> branch will be removed on " + formatISO(plan.cutoffTime));
+    if (!branch.author?.username) {
+      author=params.defaultRecipient || "";
+    } else if (params.remapAuthors && params.remapAuthors[branch.author.username]) {
+      author=params.remapAuthors[branch.author.username];
+    } else {
+      author=branch.author.username;
+    }
     console.log(
-      "-> marking branch as stale (notifying: " +
-        (branch.author?.username || params.defaultRecipient) +
-        ")"
+      "-> marking branch as stale (notifying: " + author + ")"
     );
 
     if (params.isDryRun) {
@@ -54,7 +60,8 @@ async function processBranch(
         params.staleCommentMessage,
         branch,
         params,
-        params.repo
+        params.repo,
+        author
       ),
     });
   }
@@ -269,7 +276,7 @@ export async function removeStaleBranches(
 
   const icons: Record<Plan["action"], string> = {
     remove: "❌",
-    "mark stale": "✏",
+    "mark stale": "⚰️",
     "keep stale": "😐",
     skip: "✅",
   } as const;

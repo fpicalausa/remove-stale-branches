@@ -31,21 +31,22 @@ Without setting `dry_run: true`, this action will remove branches. Consider sett
 | `operations-per-run`            | `10`                                                                                                                                                                                                                                                | Maximum number of stale branches to look at in any run of this action.                                                                                                                                                                                         |
 | `ignore-unknown-authors`        | `false`                                                                                                                                                                                                                                             | Whether to abort early when a commit author cannot be identified. By default, stop early since this may indicate that the token used to run the action doesn't have the right privileges. Set to true and define a default recipient instead if not a concern. |
 | `default-recipient`             | (not set)                                                                                                                                                                                                                                           | When `ignore-unknown-authors` is `true`, use this login as the author to notify when the branch becomes stale.                                                                                                                                                 |
+| `remap-authors`                 | (not set)                                                                                                                                                                                                                                           | A JSON formatted string that can remap branch authors onto the ones that will be notified. This can be useful when people are on longer leave.                                                                                                                                                 |
 | `ignore-branches-with-open-prs` | `false`                                                                                                                                                                                                                                             | When `ignore-branches-with-open-prs` is `true`, branches with open PRs will be ignored.                                                                                                                                                                        |
 
 ### Tokens replaced in `stale-branch-message`
 
 The following tokens are replaced when composing a comment on a stale branch:
 
-| Token                    | Description                                                                                                           | Example                                                                      |
-|--------------------------|-----------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| {branchName}             | The name of the branch slated for removal                                                                             | `fix/my-branch-123`                                                          |
-| {branchUrl}              | A url pointing to the branch slated for removal                                                                       | `https://github.com/fpicalausa/remove-stale-branches/tree/fix/my-branch-123` |
-| {repoOwner}              | The name of the owner (organization or individual) of the repo                                                        | `fpicalausa`                                                                 |
-| {repoName}               | The name of the repo                                                                                                  | `remove-stale-branches`                                                      |
-| {author}                 | The author of the last commit on the branch to be removed or the `default-recipient` if the author cannot be resolved | `fpicalausa`                                                                 |
-| {daysBeforeBranchStale}  | The number of days before a branch is considered stale                                                                | `60`                                                                         | `fpicalausa`                                                                 |
-| {daysBeforeBranchDelete} | The number of days before a branch marked for removal gets deleted                                                    | `7`                                                                          | `7`                                                                                                                                           |
+| Token                    | Description                                                                                                                                                                    | Example                                                                      |
+| ------------------------ | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------  | ---------------------------------------------------------------------------- |
+| {branchName}             | The name of the branch slated for removal                                                                                                                                      | `fix/my-branch-123`                                                          |
+| {branchUrl}              | A url pointing to the branch slated for removal                                                                                                                                | `https://github.com/fpicalausa/remove-stale-branches/tree/fix/my-branch-123` |
+| {repoOwner}              | The name of the owner (organization or individual) of the repo                                                                                                                 | `fpicalausa`                                                                 |
+| {repoName}               | The name of the repo                                                                                                                                                           | `remove-stale-branches`                                                      |
+| {author}                 | The author of the last commit on the branch to be removed, the `default-recipient` if the author cannot be resolved or the remapped username, as per the `remap-authors` input | `fpicalausa`                                                                 |
+| {daysBeforeBranchStale}  | The number of days before a branch is considered stale                                                                                                                         | `60`                                                                         |
+| {daysBeforeBranchDelete} | The number of days before a branch marked for removal gets deleted                                                                                                             | `7`                                                                          |
 
 ## Example usage
 
@@ -95,7 +96,7 @@ jobs:
 
 # Why not using (your favorite action) instead?
 
-There are many other actions to remove stale branches out there. Some just [remove](https://github.com/beatlabs/delete-old-branches-action) [branches](https://github.com/cultureamp/delete-old-branches-action), no question asked. Others close the branche out [through a PR](https://github.com/etiennemartin/stale-branch-action).
+There are many other actions to remove stale branches out there. Some just [remove](https://github.com/beatlabs/delete-old-branches-action) [branches](https://github.com/cultureamp/delete-old-branches-action), no question asked. Others close the branches out [through a PR](https://github.com/etiennemartin/stale-branch-action).
 
 This action notifies users through a commit comment. There are pros and cons to each approach, pick the one that suits you best!
 
@@ -104,7 +105,7 @@ This action notifies users through a commit comment. There are pros and cons to 
 To start, install dependencies with `npm install`. The source files live under `src`.
 
 You can run the tool locally by:
-1. Set `GITHUB_TOKEN` in a .env file with a PAT with correct access 
+1. Set `GITHUB_TOKEN` in a .env file with a PAT with correct access
 2. Edit `src/cli.ts` as needed to point to the correct repo
 3. Run `src/cli.ts` under `ts-node` as follows:
 
