@@ -15,6 +15,8 @@ This can be prevented by removing the comment, or adding new commits to the bran
 
 Without setting `dry_run: true`, this action will remove branches. Consider setting `dry_run: true` until you are happy with how this action works.
 
+You can also restrict this action to a subset of your branches using the `restrict-branches-regex` regular expression.
+
 ## Inputs
 
 | Input                           | Defaults                                                                                                                                                                                                                                            | Description                                                                                                                                                                                                                                                    |
