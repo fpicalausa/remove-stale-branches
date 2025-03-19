@@ -23,6 +23,7 @@ export type Params = {
   daysBeforeBranchStale: number;
   daysBeforeBranchDelete: number;
   staleCommentMessage: string;
+  selectedBranchesRegex?: string;
   protectedBranchesRegex?: string;
   protectedAuthorsRegex?: string;
   protectedOrganizationName?: string;

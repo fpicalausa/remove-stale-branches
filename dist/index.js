@@ -15741,6 +15741,14 @@ const { isUint8Array, isArrayBuffer } = __nccwpck_require__(9830)
 const { File: UndiciFile } = __nccwpck_require__(8511)
 const { parseMIMEType, serializeAMimeType } = __nccwpck_require__(685)
 
+let random
+try {
+  const crypto = __nccwpck_require__(6005)
+  random = (max) => crypto.randomInt(0, max)
+} catch {
+  random = (max) => Math.floor(Math.random(max))
+}
+
 let ReadableStream = globalThis.ReadableStream
 
 /** @type {globalThis['File']} */
@@ -15826,7 +15834,7 @@ function extractBody (object, keepalive = false) {
     // Set source to a copy of the bytes held by object.
     source = new Uint8Array(object.buffer.slice(object.byteOffset, object.byteOffset + object.byteLength))
   } else if (util.isFormDataLike(object)) {
-    const boundary = `----formdata-undici-0${`${Math.floor(Math.random() * 1e11)}`.padStart(11, '0')}`
+    const boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`
     const prefix = `--${boundary}\r\nContent-Disposition: form-data`
 
     /*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
@@ -30033,6 +30041,9 @@ function run() {
         const protectedOrganizationName = core.getInput("exempt-organization", {
             required: false,
         });
+        const selectedBranchesRegex = core.getInput("restrict-branches-regex", {
+            required: false,
+        });
         const protectedBranchesRegex = core.getInput("exempt-branches-regex", {
             required: false,
         });
@@ -30059,6 +30070,7 @@ function run() {
             daysBeforeBranchStale,
             daysBeforeBranchDelete,
             staleCommentMessage,
+            selectedBranchesRegex,
             protectedBranchesRegex,
             protectedAuthorsRegex,
             protectedOrganizationName,
@@ -30356,7 +30368,10 @@ function planBranchAction(now, branch, filters, commitComments, params) {
             filters.authorsRegex.test(branch.author.username)) {
             return skip(`author ${branch.author.username} is exempted`);
         }
-        if (filters.branchRegex && filters.branchRegex.test(branch.branchName)) {
+        if (filters.allowedBranchesRegex && !filters.allowedBranchesRegex.test(branch.branchName)) {
+            return skip(`branch ${branch.branchName} is outside of branch selection`);
+        }
+        if (filters.deniedBranchesRegex && filters.deniedBranchesRegex.test(branch.branchName)) {
             return skip(`branch ${branch.branchName} is exempted`);
         }
         if (filters.exemptProtectedBranches && branch.isProtected) {
@@ -30420,14 +30435,18 @@ function removeStaleBranches(octokit, params) {
         const authorsRegex = params.protectedAuthorsRegex
             ? new RegExp(params.protectedAuthorsRegex)
             : null;
-        const branchRegex = params.protectedBranchesRegex
+        const allowedBranchesRegex = params.selectedBranchesRegex
+            ? new RegExp(params.selectedBranchesRegex)
+            : null;
+        const deniedBranchesRegex = params.protectedBranchesRegex
             ? new RegExp(params.protectedBranchesRegex)
             : null;
         const repo = params.repo;
         const filters = {
             staleCutoff,
             authorsRegex,
-            branchRegex,
+            allowedBranchesRegex,
+            deniedBranchesRegex,
             removeCutoff,
             exemptProtectedBranches: params.exemptProtectedBranches,
         };
@@ -30603,6 +30622,14 @@ module.exports = require("https");
 
 "use strict";
 module.exports = require("net");
+
+/***/ }),
+
+/***/ 6005:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:crypto");
 
 /***/ }),
 
