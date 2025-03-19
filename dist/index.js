@@ -15741,6 +15741,14 @@ const { isUint8Array, isArrayBuffer } = __nccwpck_require__(9830)
 const { File: UndiciFile } = __nccwpck_require__(8511)
 const { parseMIMEType, serializeAMimeType } = __nccwpck_require__(685)
 
+let random
+try {
+  const crypto = __nccwpck_require__(6005)
+  random = (max) => crypto.randomInt(0, max)
+} catch {
+  random = (max) => Math.floor(Math.random(max))
+}
+
 let ReadableStream = globalThis.ReadableStream
 
 /** @type {globalThis['File']} */
@@ -15826,7 +15834,7 @@ function extractBody (object, keepalive = false) {
     // Set source to a copy of the bytes held by object.
     source = new Uint8Array(object.buffer.slice(object.byteOffset, object.byteOffset + object.byteLength))
   } else if (util.isFormDataLike(object)) {
-    const boundary = `----formdata-undici-0${`${Math.floor(Math.random() * 1e11)}`.padStart(11, '0')}`
+    const boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`
     const prefix = `--${boundary}\r\nContent-Disposition: form-data`
 
     /*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
@@ -29929,10 +29937,9 @@ class TaggedCommitComments {
         this.octokit = octokit;
         this.headers = headers;
     }
-    static formatCommentMessage(messageTemplate, branch, config, repo) {
-        var _a, _b;
+    static formatCommentMessage(messageTemplate, branch, config, repo, username) {
+        var _a;
         const serverUrl = (_a = process.env.GITHUB_SERVER_URL) !== null && _a !== void 0 ? _a : "https://github.com";
-        const username = ((_b = branch.author) === null || _b === void 0 ? void 0 : _b.username) || config.defaultRecipient || "(Unknown user)";
         return messageTemplate
             .replace(/[{]branchName[}]/g, branch.branchName)
             .replace(/[{]branchUrl[}]/g, `${serverUrl}/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/tree/${encodeURIComponent(branch.branchName)}`)
@@ -30049,6 +30056,7 @@ function run() {
         const daysBeforeBranchDelete = Number.parseInt(core.getInput("days-before-branch-delete", { required: false }));
         const operationsPerRun = Number.parseInt(core.getInput("operations-per-run", { required: false }));
         const defaultRecipient = (_a = core.getInput("default-recipient", { required: false })) !== null && _a !== void 0 ? _a : "";
+        const remapAuthor = JSON.parse(core.getInput("remap-author", { required: false }));
         const ignoreUnknownAuthors = core.getBooleanInput("ignore-unknown-authors", {
             required: false,
         });
@@ -30065,6 +30073,7 @@ function run() {
             exemptProtectedBranches,
             operationsPerRun,
             defaultRecipient,
+            remapAuthor,
             ignoreUnknownAuthors,
             ignoreBranchesWithOpenPRs,
         });
@@ -30291,10 +30300,18 @@ function processBranch(plan, branch, commitComments, params) {
             return;
         }
         if (plan.action === "mark stale") {
+            let author = "";
             console.log("-> branch will be removed on " + (0, formatISO_1.formatISO)(plan.cutoffTime));
-            console.log("-> marking branch as stale (notifying: " +
-                (((_c = branch.author) === null || _c === void 0 ? void 0 : _c.username) || params.defaultRecipient) +
-                ")");
+            if (!((_c = branch.author) === null || _c === void 0 ? void 0 : _c.username)) {
+                author = params.defaultRecipient || "";
+            }
+            else if (params.remapAuthor && params.remapAuthor[branch.author.username]) {
+                author = params.remapAuthor[branch.author.username];
+            }
+            else {
+                author = branch.author.username;
+            }
+            console.log("-> marking branch as stale (notifying: " + author + ")");
             if (params.isDryRun) {
                 console.log("-> (doing nothing because of dry run flag)");
                 return;
@@ -30303,7 +30320,7 @@ function processBranch(plan, branch, commitComments, params) {
             return yield commitComments.addCommitComments({
                 commentTag,
                 commitSHA: branch.commitId,
-                commentBody: commitComments_1.TaggedCommitComments.formatCommentMessage(params.staleCommentMessage, branch, params, params.repo),
+                commentBody: commitComments_1.TaggedCommitComments.formatCommentMessage(params.staleCommentMessage, branch, params, params.repo, author),
             });
         }
         console.log("-> branch was marked stale on " + (0, formatISO_1.formatISO)(plan.lastCommentTime));
@@ -30447,7 +30464,7 @@ function removeStaleBranches(octokit, params) {
         logActionRunConfiguration(params, staleCutoff, removeCutoff);
         const icons = {
             remove: "❌",
-            "mark stale": "✏",
+            "mark stale": "⚰️",
             "keep stale": "😐",
             skip: "✅",
         };
@@ -30603,6 +30620,14 @@ module.exports = require("https");
 
 "use strict";
 module.exports = require("net");
+
+/***/ }),
+
+/***/ 6005:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:crypto");
 
 /***/ }),
 
