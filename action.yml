@@ -46,13 +46,28 @@ inputs:
     description: >
       Template for commit comments notifying the author that their branch will
       be removed.
+    # Note: the following uses a YAML block scalar to ease editing. You need to
+    # use extra blank lines to enforce newlines.
     default: >
       @{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in
       the last {daysBeforeBranchStale} days and is marked as stale. It will be
       removed in {daysBeforeBranchDelete} days.
 
+
       If you want to keep this branch around, add new commits to this branch or
-      protect it.
+      protect it. To generate an empty commit to keep the branch alive, run the
+      following commands:
+
+
+      ```bash
+
+      git switch {branchName}
+
+      git commit --allow-empty -m 'Keep branch alive'
+
+      git push
+
+      ```
     required: false
   days-before-branch-stale:
     description: >
