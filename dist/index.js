@@ -30056,7 +30056,8 @@ function run() {
         const daysBeforeBranchDelete = Number.parseInt(core.getInput("days-before-branch-delete", { required: false }));
         const operationsPerRun = Number.parseInt(core.getInput("operations-per-run", { required: false }));
         const defaultRecipient = (_a = core.getInput("default-recipient", { required: false })) !== null && _a !== void 0 ? _a : "";
-        const remapAuthor = JSON.parse(core.getInput("remap-author", { required: false }));
+        const remapAuthorsInput = core.getInput("remap-authors", { required: false });
+        const remapAuthors = remapAuthorsInput ? JSON.parse(remapAuthorsInput) : null;
         const ignoreUnknownAuthors = core.getBooleanInput("ignore-unknown-authors", {
             required: false,
         });
@@ -30073,7 +30074,7 @@ function run() {
             exemptProtectedBranches,
             operationsPerRun,
             defaultRecipient,
-            remapAuthor,
+            remapAuthors,
             ignoreUnknownAuthors,
             ignoreBranchesWithOpenPRs,
         });
@@ -30305,8 +30306,8 @@ function processBranch(plan, branch, commitComments, params) {
             if (!((_c = branch.author) === null || _c === void 0 ? void 0 : _c.username)) {
                 author = params.defaultRecipient || "";
             }
-            else if (params.remapAuthor && params.remapAuthor[branch.author.username]) {
-                author = params.remapAuthor[branch.author.username];
+            else if (params.remapAuthors && params.remapAuthors[branch.author.username]) {
+                author = params.remapAuthors[branch.author.username];
             }
             else {
                 author = branch.author.username;

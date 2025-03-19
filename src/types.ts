@@ -31,6 +31,6 @@ export type Params = {
   repo: Repo;
   ignoreUnknownAuthors: boolean;
   defaultRecipient: string | null;
-  remapAuthors: { [key: string]: string };
+  remapAuthors: { [key: string]: string } | null;
   ignoreBranchesWithOpenPRs: boolean;
 };
