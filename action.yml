@@ -1,6 +1,9 @@
 name: "Remove Stale Branches"
 description: "Cleanup stale branches from a repository"
 author: "Francois Picalausa"
+branding:
+  icon: user-x
+  color: green
 runs:
   using: "node20"
   main: "dist/index.js"
