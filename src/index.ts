@@ -9,6 +9,9 @@ async function run(): Promise<void> {
   const protectedOrganizationName = core.getInput("exempt-organization", {
     required: false,
   });
+  const selectedBranchesRegex = core.getInput("restrict-branches-regex", {
+    required: false,
+  });
   const protectedBranchesRegex = core.getInput("exempt-branches-regex", {
     required: false,
   });
@@ -52,6 +55,7 @@ async function run(): Promise<void> {
     daysBeforeBranchStale,
     daysBeforeBranchDelete,
     staleCommentMessage,
+    selectedBranchesRegex,
     protectedBranchesRegex,
     protectedAuthorsRegex,
     protectedOrganizationName,
