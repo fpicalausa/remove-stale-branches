@@ -133,6 +133,11 @@ async function planBranchAction(
       `author ${branch.author.username} belongs to protected organization ${params.protectedOrganizationName}`
     );
   }
+  if (!branch.author?.username && !params.ignoreUnknownAuthors) {
+    return skip(
+      `unable to determine username of author for branch ${branch.branchName}`
+    );
+  }
 
   if (branch.openPrs && params.ignoreBranchesWithOpenPRs) {
     return skip(`branch ${branch.branchName} has open PRs`);
@@ -281,15 +286,6 @@ export async function removeStaleBranches(
     params.protectedOrganizationName
   )) {
     summary.scanned++;
-    if (!branch.author?.username && !params.ignoreUnknownAuthors) {
-      console.error(
-        "🛑 Failed to find author associated with branch " +
-          branch.branchName +
-          ". Use ignore-unknown-authors if this is expected."
-      );
-      throw new Error("Failed to find author for branch " + branch.branchName);
-    }
-
     const plan = await planBranchAction(
       now.getTime(),
       branch,
