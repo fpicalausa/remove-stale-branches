@@ -30350,17 +30350,20 @@ function getCommitCommentsForBranch(commitComments, branch) {
 }
 function planBranchAction(now, branch, filters, commitComments, params) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         if (branch.author &&
             params.protectedOrganizationName &&
             branch.author.belongsToOrganization) {
             return skip(`author ${branch.author.username} belongs to protected organization ${params.protectedOrganizationName}`);
         }
+        if (!((_a = branch.author) === null || _a === void 0 ? void 0 : _a.username) && !params.ignoreUnknownAuthors) {
+            return skip(`unable to determine username of author for branch ${branch.branchName}`);
+        }
         if (branch.openPrs && params.ignoreBranchesWithOpenPRs) {
             return skip(`branch ${branch.branchName} has open PRs`);
         }
         if (filters.authorsRegex &&
-            ((_a = branch.author) === null || _a === void 0 ? void 0 : _a.username) &&
+            ((_b = branch.author) === null || _b === void 0 ? void 0 : _b.username) &&
             filters.authorsRegex.test(branch.author.username)) {
             return skip(`author ${branch.author.username} is exempted`);
         }
@@ -30415,7 +30418,6 @@ function logActionRunConfiguration(params, staleCutoff, removeCutoff) {
 function removeStaleBranches(octokit, params) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, e_1, _b, _c;
-        var _d;
         const headers = params.githubToken
             ? {
                 "Content-Type": "application/json",
@@ -30460,17 +30462,11 @@ function removeStaleBranches(octokit, params) {
             skip: "✅",
         };
         try {
-            for (var _e = true, _f = __asyncValues((0, readBranches_1.readBranches)(octokit, headers, repo, params.protectedOrganizationName)), _g; _g = yield _f.next(), _a = _g.done, !_a; _e = true) {
-                _c = _g.value;
-                _e = false;
+            for (var _d = true, _e = __asyncValues((0, readBranches_1.readBranches)(octokit, headers, repo, params.protectedOrganizationName)), _f; _f = yield _e.next(), _a = _f.done, !_a; _d = true) {
+                _c = _f.value;
+                _d = false;
                 const branch = _c;
                 summary.scanned++;
-                if (!((_d = branch.author) === null || _d === void 0 ? void 0 : _d.username) && !params.ignoreUnknownAuthors) {
-                    console.error("🛑 Failed to find author associated with branch " +
-                        branch.branchName +
-                        ". Use ignore-unknown-authors if this is expected.");
-                    throw new Error("Failed to find author for branch " + branch.branchName);
-                }
                 const plan = yield planBranchAction(now.getTime(), branch, filters, commitComments, params);
                 summary[plan.action]++;
                 core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);
@@ -30492,7 +30488,7 @@ function removeStaleBranches(octokit, params) {
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
-                if (!_e && !_a && (_b = _f.return)) yield _b.call(_f);
+                if (!_d && !_a && (_b = _e.return)) yield _b.call(_e);
             }
             finally { if (e_1) throw e_1.error; }
         }
