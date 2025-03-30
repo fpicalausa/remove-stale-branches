@@ -37,6 +37,9 @@ async function run(): Promise<void> {
   const defaultRecipient =
     core.getInput("default-recipient", { required: false }) ?? "";
 
+  const remapAuthorsInput = core.getInput("remap-authors", { required: false });
+  const remapAuthors = remapAuthorsInput ? JSON.parse(remapAuthorsInput) : null;
+
   const ignoreUnknownAuthors = core.getBooleanInput("ignore-unknown-authors", {
     required: false,
   });
@@ -58,6 +61,7 @@ async function run(): Promise<void> {
     exemptProtectedBranches,
     operationsPerRun,
     defaultRecipient,
+    remapAuthors,
     ignoreUnknownAuthors,
     ignoreBranchesWithOpenPRs,
   });
