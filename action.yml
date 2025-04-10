@@ -13,14 +13,26 @@ inputs:
     required: false
     default: ${{ github.token }}
   dry-run:
-    description: "Flag that prevents this action from doing any modification to the repository."
+    description: >
+      Flag that prevents this action from doing any modification to the
+      repository.
     required: false
     default: "false"
   exempt-organization:
-    description: "Name of a Github organization. Branches for which the latest commiter belongs to this organization will be exempt from cleanup."
+    description: >
+      Name of a Github organization. Branches for which the latest commiter
+      belongs to this organization will be exempt from cleanup.
+    required: false
+  restrict-branches-regex:
+    description: >
+      Regular expression defining branches name that are eligible for cleanup.
+      Defaults to all.
     required: false
   exempt-branches-regex:
-    description: "Regular expression defining branches name that are exempt from cleanup. Defaults to `^(main|master)$`."
+    description: >
+      Regular expression defining branches name that are exempt from cleanup,
+      out of the ones selected for cleanup using `restrict-branches-regex`.
+      Defaults to `^(main|master)$`.
     required: false
     default: "^(main|master)$"
   exempt-protected-branches:
@@ -28,14 +40,42 @@ inputs:
     required: false
     default: "true"
   exempt-authors-regex:
-    description: "Regular expression defining authors who are exempt from cleanup. By default, no author is exempted."
+    description: >
+      Regular expression defining authors who are exempt from cleanup. By
+      default, no author is exempted.
     required: false
   stale-branch-message:
-    description: "Template for commit comments notifying the author that their branch will be removed."
-    default: "@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last {daysBeforeBranchStale} days and is marked as stale. It will be removed in {daysBeforeBranchDelete} days.\r\nIf you want to keep this branch around, add new commits to this branch or protect it."
+    description: >
+      Template for commit comments notifying the author that their branch will
+      be removed.
+    # Note: the following uses a YAML block scalar to ease editing. You need to
+    # use extra blank lines to enforce newlines.
+    default: >
+      @{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in
+      the last {daysBeforeBranchStale} days and is marked as stale. It will be
+      removed in {daysBeforeBranchDelete} days.
+
+
+      If you want to keep this branch around, add new commits to this branch or
+      protect it. To generate an empty commit to keep the branch alive, run the
+      following commands:
+
+
+      ```bash
+
+      git switch {branchName}
+
+      git commit --allow-empty -m 'Keep branch alive'
+
+      git push
+
+      ```
     required: false
   days-before-branch-stale:
-    description: "Number of days since the last commit before a branch is considered stale. Once stale, this action will leave a comment on the last commit, marking the branch as stale."
+    description: >
+      Number of days since the last commit before a branch is considered stale.
+      Once stale, this action will leave a comment on the last commit, marking
+      the branch as stale.
     default: "90"
     required: false
   days-before-branch-delete:
@@ -43,15 +83,22 @@ inputs:
     default: "7"
     required: false
   operations-per-run:
-    description: "Maximum number of stale branches to look at in any run of this action."
+    description: >
+      Maximum number of stale branches to look at in any run of this action.
     default: "10"
     required: false
   ignore-unknown-authors:
-    description: "Whether to abort early when a commit author cannot be identified. By default, stop early since this may indicate that the token used to run the action doesn't have the right privileges. Set to true and define a default recipient instead if not a concern."
+    description: >
+      Whether to abort early when a commit author cannot be identified. By
+      default, stop early since this may indicate that the token used to run the
+      action doesn't have the right privileges. Set to true and define a default
+      recipient instead if not a concern.
     default: "false"
     required: false
   default-recipient:
-    description: "A string corresponding to the username to be tagged on stale branches from unknown authors"
+    description: >
+      A string corresponding to the username to be tagged on stale branches from
+      unknown authors
     default: ""
     required: false
   ignore-branches-with-open-prs:
