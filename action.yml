@@ -23,9 +23,8 @@ inputs:
   restrict-branches-regex:
     description: >
       Regular expression defining branches name that are eligible for cleanup.
-      Defaults to `^.*$`.
+      Defaults to all.
     required: false
-    default: "^.*$"
   exempt-branches-regex:
     description: >
       Regular expression defining branches name that are exempt from cleanup,
