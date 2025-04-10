@@ -38,7 +38,7 @@ async function processBranch(
     console.log("-> branch will be removed on " + formatISO(plan.cutoffTime));
     if (!branch.author?.username) {
       author=params.defaultRecipient || "";
-    } else if (params.remapAuthors && params.remapAuthors[branch.author.username]) {
+    } else if (params.remapAuthors[branch.author.username]) {
       author=params.remapAuthors[branch.author.username];
     } else {
       author=branch.author.username;

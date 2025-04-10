@@ -30057,7 +30057,10 @@ function run() {
         const operationsPerRun = Number.parseInt(core.getInput("operations-per-run", { required: false }));
         const defaultRecipient = (_a = core.getInput("default-recipient", { required: false })) !== null && _a !== void 0 ? _a : "";
         const remapAuthorsInput = core.getInput("remap-authors", { required: false });
-        const remapAuthors = remapAuthorsInput ? JSON.parse(remapAuthorsInput) : null;
+        const remapAuthors = remapAuthorsInput ? JSON.parse(remapAuthorsInput) : {};
+        if (!remapAuthors || Array.isArray(remapAuthors) || typeof remapAuthors !== 'object') {
+            throw new Error("unexpected input: remap-authors is not a json object");
+        }
         const ignoreUnknownAuthors = core.getBooleanInput("ignore-unknown-authors", {
             required: false,
         });
@@ -30306,7 +30309,7 @@ function processBranch(plan, branch, commitComments, params) {
             if (!((_c = branch.author) === null || _c === void 0 ? void 0 : _c.username)) {
                 author = params.defaultRecipient || "";
             }
-            else if (params.remapAuthors && params.remapAuthors[branch.author.username]) {
+            else if (params.remapAuthors[branch.author.username]) {
                 author = params.remapAuthors[branch.author.username];
             }
             else {
