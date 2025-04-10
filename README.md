@@ -96,6 +96,20 @@ jobs:
           days-before-branch-delete: 7
 ```
 
+# Required scopes
+
+The required scopes for the github token are:
+
+```
+contents: write
+actions: read
+pull-requests: read
+```
+
+Content write access is needed to read branches and commits, and also comment on those branches when they are stale.
+
+Pull request read access is needed to understand if a branch is still attached to an open pull request.
+
 # Why not using (your favorite action) instead?
 
 There are many other actions to remove stale branches out there. Some just [remove](https://github.com/beatlabs/delete-old-branches-action) [branches](https://github.com/cultureamp/delete-old-branches-action), no question asked. Others close the branche out [through a PR](https://github.com/etiennemartin/stale-branch-action).

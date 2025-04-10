@@ -3736,7 +3736,7 @@ module.exports = __toCommonJS(dist_src_exports);
 var import_universal_user_agent = __nccwpck_require__(5030);
 
 // pkg/dist-src/version.js
-var VERSION = "9.0.5";
+var VERSION = "9.0.6";
 
 // pkg/dist-src/defaults.js
 var userAgent = `octokit-endpoint.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
@@ -3841,9 +3841,9 @@ function addQueryParameters(url, parameters) {
 }
 
 // pkg/dist-src/util/extract-url-variable-names.js
-var urlVariableRegex = /\{[^}]+\}/g;
+var urlVariableRegex = /\{[^{}}]+\}/g;
 function removeNonChars(variableName) {
-  return variableName.replace(/^\W+|\W+$/g, "").split(/,/);
+  return variableName.replace(/(?:^\W+)|(?:(?<!\W)\W+$)/g, "").split(/,/);
 }
 function extractUrlVariableNames(url) {
   const matches = url.match(urlVariableRegex);
@@ -4029,7 +4029,7 @@ function parse(options) {
     }
     if (url.endsWith("/graphql")) {
       if (options.mediaType.previews?.length) {
-        const previewsFromAcceptHeader = headers.accept.match(/[\w-]+(?=-preview)/g) || [];
+        const previewsFromAcceptHeader = headers.accept.match(/(?<![\w-])[\w-]+(?=-preview)/g) || [];
         headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
           const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
           return `application/vnd.github.${preview}-preview${format}`;
@@ -4278,7 +4278,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/version.js
-var VERSION = "9.2.1";
+var VERSION = "9.2.2";
 
 // pkg/dist-src/normalize-paginated-list-response.js
 function normalizePaginatedListResponse(response) {
@@ -4326,7 +4326,7 @@ function iterator(octokit, route, parameters) {
           const response = await requestMethod({ method, url, headers });
           const normalizedResponse = normalizePaginatedListResponse(response);
           url = ((normalizedResponse.headers.link || "").match(
-            /<([^>]+)>;\s*rel="next"/
+            /<([^<>]+)>;\s*rel="next"/
           ) || [])[1];
           return { value: normalizedResponse };
         } catch (error) {
@@ -6878,7 +6878,7 @@ var RequestError = class extends Error {
     if (options.request.headers.authorization) {
       requestCopy.headers = Object.assign({}, options.request.headers, {
         authorization: options.request.headers.authorization.replace(
-          / .*$/,
+          /(?<! ) .*$/,
           " [REDACTED]"
         )
       });
@@ -6946,7 +6946,7 @@ var import_endpoint = __nccwpck_require__(9440);
 var import_universal_user_agent = __nccwpck_require__(5030);
 
 // pkg/dist-src/version.js
-var VERSION = "8.4.0";
+var VERSION = "8.4.1";
 
 // pkg/dist-src/is-plain-object.js
 function isPlainObject(value) {
@@ -7005,7 +7005,7 @@ function fetchWrapper(requestOptions) {
       headers[keyAndValue[0]] = keyAndValue[1];
     }
     if ("deprecation" in headers) {
-      const matches = headers.link && headers.link.match(/<([^>]+)>; rel="deprecation"/);
+      const matches = headers.link && headers.link.match(/<([^<>]+)>; rel="deprecation"/);
       const deprecationLink = matches && matches.pop();
       log.warn(
         `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
@@ -30354,17 +30354,20 @@ function getCommitCommentsForBranch(commitComments, branch) {
 }
 function planBranchAction(now, branch, filters, commitComments, params) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         if (branch.author &&
             params.protectedOrganizationName &&
             branch.author.belongsToOrganization) {
             return skip(`author ${branch.author.username} belongs to protected organization ${params.protectedOrganizationName}`);
         }
+        if (!((_a = branch.author) === null || _a === void 0 ? void 0 : _a.username) && !params.ignoreUnknownAuthors) {
+            return skip(`unable to determine username of author for branch ${branch.branchName}`);
+        }
         if (branch.openPrs && params.ignoreBranchesWithOpenPRs) {
             return skip(`branch ${branch.branchName} has open PRs`);
         }
         if (filters.authorsRegex &&
-            ((_a = branch.author) === null || _a === void 0 ? void 0 : _a.username) &&
+            ((_b = branch.author) === null || _b === void 0 ? void 0 : _b.username) &&
             filters.authorsRegex.test(branch.author.username)) {
             return skip(`author ${branch.author.username} is exempted`);
         }
@@ -30422,7 +30425,6 @@ function logActionRunConfiguration(params, staleCutoff, removeCutoff) {
 function removeStaleBranches(octokit, params) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, e_1, _b, _c;
-        var _d;
         const headers = params.githubToken
             ? {
                 "Content-Type": "application/json",
@@ -30471,17 +30473,11 @@ function removeStaleBranches(octokit, params) {
             skip: "✅",
         };
         try {
-            for (var _e = true, _f = __asyncValues((0, readBranches_1.readBranches)(octokit, headers, repo, params.protectedOrganizationName)), _g; _g = yield _f.next(), _a = _g.done, !_a; _e = true) {
-                _c = _g.value;
-                _e = false;
+            for (var _d = true, _e = __asyncValues((0, readBranches_1.readBranches)(octokit, headers, repo, params.protectedOrganizationName)), _f; _f = yield _e.next(), _a = _f.done, !_a; _d = true) {
+                _c = _f.value;
+                _d = false;
                 const branch = _c;
                 summary.scanned++;
-                if (!((_d = branch.author) === null || _d === void 0 ? void 0 : _d.username) && !params.ignoreUnknownAuthors) {
-                    console.error("🛑 Failed to find author associated with branch " +
-                        branch.branchName +
-                        ". Use ignore-unknown-authors if this is expected.");
-                    throw new Error("Failed to find author for branch " + branch.branchName);
-                }
                 const plan = yield planBranchAction(now.getTime(), branch, filters, commitComments, params);
                 summary[plan.action]++;
                 core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);
@@ -30503,7 +30499,7 @@ function removeStaleBranches(octokit, params) {
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
-                if (!_e && !_a && (_b = _f.return)) yield _b.call(_f);
+                if (!_d && !_a && (_b = _e.return)) yield _b.call(_e);
             }
             finally { if (e_1) throw e_1.error; }
         }
