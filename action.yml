@@ -105,3 +105,6 @@ inputs:
     description: "Whether to ignore branches with open pull requests."
     default: "false"
     required: false
+  remap-authors:
+    description: "A JSON mapping overriding some commit authors to Github usernames. The remapped names will be used in the comments."
+    required: false

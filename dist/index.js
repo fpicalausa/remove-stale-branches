@@ -29937,10 +29937,9 @@ class TaggedCommitComments {
         this.octokit = octokit;
         this.headers = headers;
     }
-    static formatCommentMessage(messageTemplate, branch, config, repo) {
-        var _a, _b;
+    static formatCommentMessage(messageTemplate, branch, config, repo, username) {
+        var _a;
         const serverUrl = (_a = process.env.GITHUB_SERVER_URL) !== null && _a !== void 0 ? _a : "https://github.com";
-        const username = ((_b = branch.author) === null || _b === void 0 ? void 0 : _b.username) || config.defaultRecipient || "(Unknown user)";
         return messageTemplate
             .replace(/[{]branchName[}]/g, branch.branchName)
             .replace(/[{]branchUrl[}]/g, `${serverUrl}/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/tree/${encodeURIComponent(branch.branchName)}`)
@@ -30060,6 +30059,11 @@ function run() {
         const daysBeforeBranchDelete = Number.parseInt(core.getInput("days-before-branch-delete", { required: false }));
         const operationsPerRun = Number.parseInt(core.getInput("operations-per-run", { required: false }));
         const defaultRecipient = (_a = core.getInput("default-recipient", { required: false })) !== null && _a !== void 0 ? _a : "";
+        const remapAuthorsInput = core.getInput("remap-authors", { required: false });
+        const remapAuthors = remapAuthorsInput ? JSON.parse(remapAuthorsInput) : {};
+        if (!remapAuthors || Array.isArray(remapAuthors) || typeof remapAuthors !== 'object') {
+            throw new Error("unexpected input: remap-authors is not a json object");
+        }
         const ignoreUnknownAuthors = core.getBooleanInput("ignore-unknown-authors", {
             required: false,
         });
@@ -30077,6 +30081,7 @@ function run() {
             exemptProtectedBranches,
             operationsPerRun,
             defaultRecipient,
+            remapAuthors,
             ignoreUnknownAuthors,
             ignoreBranchesWithOpenPRs,
         });
@@ -30303,10 +30308,18 @@ function processBranch(plan, branch, commitComments, params) {
             return;
         }
         if (plan.action === "mark stale") {
+            let author = "";
             console.log("-> branch will be removed on " + (0, formatISO_1.formatISO)(plan.cutoffTime));
-            console.log("-> marking branch as stale (notifying: " +
-                (((_c = branch.author) === null || _c === void 0 ? void 0 : _c.username) || params.defaultRecipient) +
-                ")");
+            if (!((_c = branch.author) === null || _c === void 0 ? void 0 : _c.username)) {
+                author = params.defaultRecipient || "";
+            }
+            else if (params.remapAuthors[branch.author.username]) {
+                author = params.remapAuthors[branch.author.username];
+            }
+            else {
+                author = branch.author.username;
+            }
+            console.log("-> marking branch as stale (notifying: " + author + ")");
             if (params.isDryRun) {
                 console.log("-> (doing nothing because of dry run flag)");
                 return;
@@ -30315,7 +30328,7 @@ function processBranch(plan, branch, commitComments, params) {
             return yield commitComments.addCommitComments({
                 commentTag,
                 commitSHA: branch.commitId,
-                commentBody: commitComments_1.TaggedCommitComments.formatCommentMessage(params.staleCommentMessage, branch, params, params.repo),
+                commentBody: commitComments_1.TaggedCommitComments.formatCommentMessage(params.staleCommentMessage, branch, params, params.repo, author),
             });
         }
         console.log("-> branch was marked stale on " + (0, formatISO_1.formatISO)(plan.lastCommentTime));
@@ -30468,7 +30481,7 @@ function removeStaleBranches(octokit, params) {
         logActionRunConfiguration(params, staleCutoff, removeCutoff);
         const icons = {
             remove: "❌",
-            "mark stale": "✏",
+            "mark stale": "⚰️",
             "keep stale": "😐",
             skip: "✅",
         };

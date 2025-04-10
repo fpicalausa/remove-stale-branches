@@ -40,6 +40,12 @@ async function run(): Promise<void> {
   const defaultRecipient =
     core.getInput("default-recipient", { required: false }) ?? "";
 
+  const remapAuthorsInput = core.getInput("remap-authors", { required: false });
+  const remapAuthors = remapAuthorsInput ? JSON.parse(remapAuthorsInput) : {};
+  if (!remapAuthors || Array.isArray(remapAuthors) || typeof remapAuthors !== 'object') {
+     throw new Error("unexpected input: remap-authors is not a json object")
+  }
+
   const ignoreUnknownAuthors = core.getBooleanInput("ignore-unknown-authors", {
     required: false,
   });
@@ -62,6 +68,7 @@ async function run(): Promise<void> {
     exemptProtectedBranches,
     operationsPerRun,
     defaultRecipient,
+    remapAuthors,
     ignoreUnknownAuthors,
     ignoreBranchesWithOpenPRs,
   });
