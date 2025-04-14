@@ -75,7 +75,7 @@ jobs:
 
 ### Cleanup branches from people who left an organization
 
-This configuration will remove branches of people who are not longer part of the acme-inc organization after two weeks, except for (dependabot)[https://github.com/dependabot].
+This configuration will remove branches of people who are not longer part of the acme-inc organization after two weeks, except for [dependabot](https://github.com/dependabot).
 
 ```yml
 on:
