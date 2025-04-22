@@ -10,7 +10,8 @@ import { addDays } from "date-fns";
 type BranchFilters = {
   staleCutoff: number;
   authorsRegex: RegExp | null;
-  branchRegex: RegExp | null;
+  allowedBranchesRegex: RegExp | null;
+  deniedBranchesRegex: RegExp | null;
   removeCutoff: number;
   exemptProtectedBranches: boolean;
 };
@@ -140,6 +141,11 @@ async function planBranchAction(
       `author ${branch.author.username} belongs to protected organization ${params.protectedOrganizationName}`
     );
   }
+  if (!branch.author?.username && !params.ignoreUnknownAuthors) {
+    return skip(
+      `unable to determine username of author for branch ${branch.branchName}`
+    );
+  }
 
   if (branch.openPrs && params.ignoreBranchesWithOpenPRs) {
     return skip(`branch ${branch.branchName} has open PRs`);
@@ -153,7 +159,10 @@ async function planBranchAction(
     return skip(`author ${branch.author.username} is exempted`);
   }
 
-  if (filters.branchRegex && filters.branchRegex.test(branch.branchName)) {
+  if (filters.allowedBranchesRegex && !filters.allowedBranchesRegex.test(branch.branchName)) {
+    return skip(`branch ${branch.branchName} is outside of branch selection`);
+  }
+  if (filters.deniedBranchesRegex && filters.deniedBranchesRegex.test(branch.branchName)) {
     return skip(`branch ${branch.branchName} is exempted`);
   }
 
@@ -243,7 +252,10 @@ export async function removeStaleBranches(
   const authorsRegex = params.protectedAuthorsRegex
     ? new RegExp(params.protectedAuthorsRegex)
     : null;
-  const branchRegex = params.protectedBranchesRegex
+  const allowedBranchesRegex = params.selectedBranchesRegex
+    ? new RegExp(params.selectedBranchesRegex)
+    : null;
+  const deniedBranchesRegex = params.protectedBranchesRegex
     ? new RegExp(params.protectedBranchesRegex)
     : null;
   const repo = params.repo;
@@ -251,7 +263,8 @@ export async function removeStaleBranches(
   const filters: BranchFilters = {
     staleCutoff,
     authorsRegex,
-    branchRegex,
+    allowedBranchesRegex,
+    deniedBranchesRegex,
     removeCutoff,
     exemptProtectedBranches: params.exemptProtectedBranches,
   };
@@ -288,15 +301,6 @@ export async function removeStaleBranches(
     params.protectedOrganizationName
   )) {
     summary.scanned++;
-    if (!branch.author?.username && !params.ignoreUnknownAuthors) {
-      console.error(
-        "🛑 Failed to find author associated with branch " +
-          branch.branchName +
-          ". Use ignore-unknown-authors if this is expected."
-      );
-      throw new Error("Failed to find author for branch " + branch.branchName);
-    }
-
     const plan = await planBranchAction(
       now.getTime(),
       branch,

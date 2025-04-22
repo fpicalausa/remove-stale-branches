@@ -15,14 +15,17 @@ This can be prevented by removing the comment, or adding new commits to the bran
 
 Without setting `dry_run: true`, this action will remove branches. Consider setting `dry_run: true` until you are happy with how this action works.
 
+You can also restrict this action to a subset of your branches using the `restrict-branches-regex` regular expression.
+
 ## Inputs
 
 | Input                           | Defaults                                                                                                                                                                                                                                            | Description                                                                                                                                                                                                                                                    |
-|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `github-token`                  | `${{ secrets.GITHUB_TOKEN }}`                                                                                                                                                                                                                       | PAT for GitHub API authentication.                                                                                                                                                                                                                             |
 | `dry-run`                       | `false`                                                                                                                                                                                                                                             | Flag that prevents this action from doing any modification to the repository.                                                                                                                                                                                  |
 | `exempt-organization`           | (not set)                                                                                                                                                                                                                                           | Name of a Github organization. Branches for which the latest commiter belongs to this organization will be exempt from cleanup.                                                                                                                                |
-| `exempt-branches-regex`         | `^(main\|master)$`                                                                                                                                                                                                                                  | Regular expression defining branches name that are exempt from cleanup.                                                                                                                                                                                        |
+| `restrict-branches-regex`       | `^.*$`                                                                                                                                                                                                                                              | Regular expression defining the branch names that should be considered for cleanup.                                                                                                                                                                            |
+| `exempt-branches-regex`         | `^(main\|master)$`                                                                                                                                                                                                                                  | Regular expression defining branch names that are exempt from cleanup, out of the ones selected for cleanup using `restrict-branches-regex`.                                                                                                                   |
 | `exempt-authors-regex`          | (not set)                                                                                                                                                                                                                                           | Regular expression defining authors who are exempt from cleanup.                                                                                                                                                                                               |
 | `exempt-protected-branches`     | `true`                                                                                                                                                                                                                                              | Whether protected branches are exempted                                                                                                                                                                                                                        |
 | `stale-branch-message`          | `@{author} Your branch [{branchName}]({branchUrl}) hasn't been updated in the last 60 days and is marked as stale. It will be removed in a week.\r\nIf you want to keep this branch around, delete this comment or add new commits to this branch.` | Template for commit comments notifying the author that their branch will be removed.                                                                                                                                                                           |
@@ -93,6 +96,20 @@ jobs:
           days-before-branch-stale: 7
           days-before-branch-delete: 7
 ```
+
+# Required scopes
+
+The required scopes for the github token are:
+
+```
+contents: write
+actions: read
+pull-requests: read
+```
+
+Content write access is needed to read branches and commits, and also comment on those branches when they are stale.
+
+Pull request read access is needed to understand if a branch is still attached to an open pull request.
 
 # Why not using (your favorite action) instead?
 
