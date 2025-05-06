@@ -76,7 +76,7 @@ jobs:
 
 ### Cleanup branches from people who left an organization
 
-This configuration will remove branches of people who are not longer part of the acme-inc organization after two weeks, except for (dependabot)[https://github.com/dependabot].
+This configuration will remove branches of people who are not longer part of the acme-inc organization after two weeks, except for [dependabot](https://github.com/dependabot).
 
 ```yml
 on:
@@ -113,7 +113,7 @@ Pull request read access is needed to understand if a branch is still attached t
 
 # Why not using (your favorite action) instead?
 
-There are many other actions to remove stale branches out there. Some just [remove](https://github.com/beatlabs/delete-old-branches-action) [branches](https://github.com/cultureamp/delete-old-branches-action), no question asked. Others close the branches out [through a PR](https://github.com/etiennemartin/stale-branch-action).
+There are many other actions to remove stale branches out there. Some just [remove branches](https://github.com/beatlabs/delete-old-branches-action), no question asked. Others close the branches out [through a PR](https://github.com/etiennemartin/stale-branch-action).
 
 This action notifies users through a commit comment. There are pros and cons to each approach, pick the one that suits you best!
 
