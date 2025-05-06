@@ -33,13 +33,12 @@ export class TaggedCommitComments {
     branch: Branch,
     config: Pick<
       Params,
-      "daysBeforeBranchStale" | "daysBeforeBranchDelete" | "defaultRecipient"
+      "daysBeforeBranchStale" | "daysBeforeBranchDelete"
     >,
-    repo: Repo
+    repo: Repo,
+    username: string
   ) {
     const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
-    const username =
-      branch.author?.username || config.defaultRecipient || "(Unknown user)";
     return messageTemplate
       .replace(/[{]branchName[}]/g, branch.branchName)
       .replace(
