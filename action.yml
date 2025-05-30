@@ -108,3 +108,8 @@ inputs:
   remap-authors:
     description: "A JSON mapping overriding some commit authors to Github usernames. The remapped names will be used in the comments."
     required: false
+  repository:
+    description: >
+      Target repository in the format `owner/repo`. Defaults to the repository
+      the workflow is running in.
+    required: false

@@ -6,6 +6,13 @@ async function run(): Promise<void> {
   const githubToken = core.getInput("github-token", { required: true });
   const octokit = github.getOctokit(githubToken);
   const isDryRun = core.getBooleanInput("dry-run", { required: false });
+  const repositoryInput = core.getInput("repository", { required: false });
+  const repo = repositoryInput
+  ? {
+      owner: repositoryInput.split("/")[0],
+      repo: repositoryInput.split("/")[1],
+    }
+  : github.context.repo;
   const protectedOrganizationName = core.getInput("exempt-organization", {
     required: false,
   });
@@ -57,7 +64,7 @@ async function run(): Promise<void> {
 
   return removeStaleBranches(octokit, {
     isDryRun,
-    repo: github.context.repo,
+    repo,
     daysBeforeBranchStale,
     daysBeforeBranchDelete,
     staleCommentMessage,
