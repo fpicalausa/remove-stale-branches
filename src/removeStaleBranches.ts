@@ -235,6 +235,8 @@ function logActionRunConfiguration(
   }
 }
 
+import pLimit from "p-limit";
+
 export async function removeStaleBranches(
   octokit: Octokit,
   params: Params
@@ -294,36 +296,56 @@ export async function removeStaleBranches(
     skip: "✅",
   } as const;
 
-  for await (const branch of readBranches(
-    octokit,
-    headers,
-    repo,
-    params.protectedOrganizationName
-  )) {
-    summary.scanned++;
-    const plan = await planBranchAction(
-      now.getTime(),
-      branch,
-      filters,
-      commitComments,
-      params
-    );
-    summary[plan.action]++;
-    core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);
-    try {
-      await processBranch(plan, branch, commitComments, params);
+  const limit = pLimit(5); // Limit concurrency to 5
 
-      if (plan.action !== "skip" && plan.action != "keep stale") {
-        operations++;
+  try {
+    const branchPromises = [];
+    for await (const branch of readBranches(
+      octokit,
+      headers,
+      repo,
+      params.protectedOrganizationName
+    )) {
+      summary.scanned++;
+      branchPromises.push(
+        limit(async () => {
+          let plan: Plan;
+          try {
+            plan = await planBranchAction(
+              now.getTime(),
+              branch,
+              filters,
+              commitComments,
+              params
+            );
+          } catch (e) {
+            console.error(`Error planning action for branch ${branch.branchName}:`, e);
+            summary.skip++;
+            return;
+          }
+          summary[plan.action]++;
+          core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);
+          try {
+            await processBranch(plan, branch, commitComments, params);
+            if (plan.action !== "skip" && plan.action != "keep stale") {
+              operations++;
+            }
+          } catch (e) {
+            console.error(`Error processing branch ${branch.branchName}:`, e);
+          } finally {
+            core.endGroup();
+          }
+        })
+      );
+
+      if (operations >= params.operationsPerRun) {
+        console.log("Stopping after " + operations + " operations");
+        break;
       }
-    } finally {
-      core.endGroup();
     }
-
-    if (operations >= params.operationsPerRun) {
-      console.log("Stopping after " + operations + " operations");
-      return;
-    }
+    await Promise.all(branchPromises);
+  } catch (e) {
+    console.error("Error reading branches:", e);
   }
 
   const actionSummary = [
