@@ -115,3 +115,5 @@ out
 .yarn/install-state.gz
 .pnp.*
 
+# Prevent JetBrains IDE workspace and user-specific configuration from being tracked
+.idea/
