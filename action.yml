@@ -20,17 +20,17 @@ inputs:
     default: "false"
   exempt-organization:
     description: >
-      Name of a Github organization. Branches for which the latest commiter
+      Name of a GitHub organization. Branches for which the latest committer
       belongs to this organization will be exempt from cleanup.
     required: false
   restrict-branches-regex:
     description: >
-      Regular expression defining branches name that are eligible for cleanup.
+      Regular expression defining branch names that are eligible for cleanup.
       Defaults to all.
     required: false
   exempt-branches-regex:
     description: >
-      Regular expression defining branches name that are exempt from cleanup,
+      Regular expression defining branch names that are exempt from cleanup,
       out of the ones selected for cleanup using `restrict-branches-regex`.
       Defaults to `^(main|master)$`.
     required: false
@@ -106,7 +106,7 @@ inputs:
     default: "false"
     required: false
   remap-authors:
-    description: "A JSON mapping overriding some commit authors to Github usernames. The remapped names will be used in the comments."
+    description: "A JSON mapping overriding some commit authors to GitHub usernames. The remapped names will be used in the comments."
     required: false
   repository:
     description: >
