@@ -5,7 +5,7 @@ branding:
   icon: user-x
   color: green
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/index.js"
 inputs:
   github-token:
