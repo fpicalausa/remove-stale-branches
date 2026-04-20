@@ -44,6 +44,14 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
     }
   }
 }`;
+
+const GRAPHQL_BASE_PR_QUERY = `query ($repo: String!, $owner: String!, $base: String!) {
+  repository(name: $repo, owner: $owner) {
+    pullRequests(first: 1, states: OPEN, baseRefName: $base) {
+      totalCount
+    }
+  }
+}`;
 const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organization: String!, $after: String) {
   repository(name: $repo, owner: $owner) {
     id
@@ -211,6 +219,13 @@ export async function* readBranches(
         };
       }
 
+      // Check if branch has open PRs as HEAD (source) or BASE (target)
+      const hasOpenPrsAsHead = associatedPullRequests.nodes.length > 0;
+      const { repository: { pullRequests } } = await octokit.graphql<{ repository: { pullRequests: { totalCount: number } } }>(
+        GRAPHQL_BASE_PR_QUERY,
+        { ...repo, base: name, headers }
+      );
+
       yield {
         date: Date.parse(authoredDate),
         branchName: name,
@@ -218,7 +233,7 @@ export async function* readBranches(
         commitId: oid,
         author: branchAuthor,
         isProtected: refUpdateRule !== null,
-        openPrs: associatedPullRequests.nodes.length > 0,
+        openPrs: hasOpenPrsAsHead || pullRequests.totalCount > 0,
       };
     }
     pagination = pageInfo;
