@@ -100,7 +100,7 @@ async function run(): Promise<void> {
     core.setOutput("new_stale_branches_count", summary["mark stale"]);
     core.setOutput("existing_stale_branches_count", summary["keep stale"]);
   } catch (e) {
-    if (e && typeof e === 'object' && e instanceof Error) {
+    if (e && typeof e === "object" && e instanceof Error) {
       core.setFailed(e);
     }
   }

@@ -9,7 +9,7 @@ let octokit = new Octokit({
 });
 
 if (!process.env.GITHUB_TOKEN) {
-  console.error("No GITHUB_TOKEN found. Aborting.")
+  console.error("No GITHUB_TOKEN found. Aborting.");
   process.exit(2);
 }
 
