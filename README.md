@@ -22,7 +22,7 @@ You can also restrict this action to a subset of your branches using the `restri
 | Input                           | Defaults                                                                                                                                                                                                                                            | Description                                                                                                                                                                                                                                                    |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `github-token`                  | `${{ secrets.GITHUB_TOKEN }}`                                                                                                                                                                                                                       | PAT for GitHub API authentication.                                                                                                                                                                                                                             |
-| `repository`                    | (current repository)                                                                                                                                                                                                                                | Target repository in the format `owner/repo`. Useful for applying cleanup from a centralized workflow. Requires the provided token to have access to the target repository.                                                                                   |
+| `repository`                    | (current repository)                                                                                                                                                                                                                                | Target repository in the format `owner/repo`. Useful for applying cleanup from a centralized workflow. Requires the provided token to have access to the target repository.                                                                                    |
 | `dry-run`                       | `false`                                                                                                                                                                                                                                             | Flag that prevents this action from doing any modification to the repository.                                                                                                                                                                                  |
 | `exempt-organization`           | (not set)                                                                                                                                                                                                                                           | Name of a GitHub organization. Branches for which the latest committer belongs to this organization will be exempt from cleanup.                                                                                                                               |
 | `restrict-branches-regex`       | `^.*$`                                                                                                                                                                                                                                              | Regular expression defining the branch names that should be considered for cleanup.                                                                                                                                                                            |
@@ -43,7 +43,7 @@ You can also restrict this action to a subset of your branches using the `restri
 The following tokens are replaced when composing a comment on a stale branch:
 
 | Token                    | Description                                                                                                                                                                    | Example                                                                      |
-| ------------------------ | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------  | ---------------------------------------------------------------------------- |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | {branchName}             | The name of the branch slated for removal                                                                                                                                      | `fix/my-branch-123`                                                          |
 | {branchUrl}              | A url pointing to the branch slated for removal                                                                                                                                | `https://github.com/fpicalausa/remove-stale-branches/tree/fix/my-branch-123` |
 | {repoOwner}              | The name of the owner (organization or individual) of the repo                                                                                                                 | `fpicalausa`                                                                 |
@@ -52,9 +52,20 @@ The following tokens are replaced when composing a comment on a stale branch:
 | {daysBeforeBranchStale}  | The number of days before a branch is considered stale                                                                                                                         | `60`                                                                         |
 | {daysBeforeBranchDelete} | The number of days before a branch marked for removal gets deleted                                                                                                             | `7`                                                                          |
 
+## Output
+
+| Output                        | Type       | Description                                                                                        |
+| ----------------------------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| scanned_branches              | number     | Total number of branches scanned.                                                                  |
+| removed_branches              | JSON Array | List of objects containing branchName, author, and lastUpdated for deleted branches.               |
+| removed_branches_count        | number     | Total count of branches deleted.                                                                   |
+| new_stale_branches            | JSON Array | List of objects containing branchName, author, and lastUpdated for branches newly marked as stale. |
+| new_stale_branches_count      | number     | Total count of branches newly marked as stale.                                                     |
+| existing_stale_branches_count | number     | Total count of branches that were already stale and kept.                                          |
+
 ## Example usage
 
-The follow examples show how you can use this action.
+The following examples show how you can use this action.
 
 ### Default configuration
 
@@ -123,12 +134,13 @@ This action notifies users through a commit comment. There are pros and cons to 
 To start, install dependencies with `npm install`. The source files live under `src`.
 
 You can run the tool locally by:
+
 1. Set `GITHUB_TOKEN` in a .env file with a PAT with correct access
 2. Edit `src/cli.ts` as needed to point to the correct repo
 3. Run `src/cli.ts` under `ts-node` as follows:
 
-    ```shell
-    source .env && npx tsx src/cli.ts
-    ```
+   ```shell
+   source .env && npx tsx src/cli.ts
+   ```
 
 To deploy you changes, start a PR. Don't forget to run `npm run build` and include changes to the `dist` dir in your commit.

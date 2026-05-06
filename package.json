@@ -10,7 +10,7 @@
   "scripts": {
     "build": "rolldown -c",
     "test": "jest",
-    "prettier:write": "prettier --write \"src/*.ts\"",
+    "prettier:write": "prettier --write \"src/*.ts\" README.md",
     "cli": "tsx src/cli.ts"
   },
   "dependencies": {
