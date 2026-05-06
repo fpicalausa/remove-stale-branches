@@ -283,10 +283,7 @@ export async function removeStaleBranches(
   };
 
   if (params.ignoreUnknownAuthors && !params.defaultRecipient) {
-    console.error(
-      "When ignoring unknown authors, you must specify a default recipient",
-    );
-    return;
+    throw Error("When ignoring unknown authors, you must specify a default recipient");
   }
 
   logActionRunConfiguration(params, staleCutoff, removeCutoff);
