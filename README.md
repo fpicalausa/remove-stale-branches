@@ -1,13 +1,13 @@
 # Remove Stale Branches
 
-This Github Action will identify stale branches and mark them for deletion after a set period.
+This GitHub Action will identify stale branches and mark them for deletion after a set period.
 
 By default, branches are identified as stale if their latest commit is older than 90 days.
 This is useful for repositories that have many contributors that work on and off, and may forget to cleanup 🧹
 
 # How it works?
 
-This Action look for branches whose last commit is older than a `days-before-branch-stale` days. It will first add a comment on the latest commit, notifying the contributor that their branch is stale. If no action is taken before `days-before-branch-delete` days, the branch will be removed.
+This Action looks for branches whose last commit is older than `days-before-branch-stale` days. It will first add a comment on the latest commit, notifying the contributor that their branch is stale. If no action is taken before `days-before-branch-delete` days, the branch will be removed.
 
 This can be prevented by removing the comment, or adding new commits to the branch.
 
@@ -22,8 +22,9 @@ You can also restrict this action to a subset of your branches using the `restri
 | Input                           | Defaults                                                                                                                                                                                                                                            | Description                                                                                                                                                                                                                                                    |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `github-token`                  | `${{ secrets.GITHUB_TOKEN }}`                                                                                                                                                                                                                       | PAT for GitHub API authentication.                                                                                                                                                                                                                             |
+| `repository`                    | (current repository)                                                                                                                                                                                                                                | Target repository in the format `owner/repo`. Useful for applying cleanup from a centralized workflow. Requires the provided token to have access to the target repository.                                                                                    |
 | `dry-run`                       | `false`                                                                                                                                                                                                                                             | Flag that prevents this action from doing any modification to the repository.                                                                                                                                                                                  |
-| `exempt-organization`           | (not set)                                                                                                                                                                                                                                           | Name of a Github organization. Branches for which the latest commiter belongs to this organization will be exempt from cleanup.                                                                                                                                |
+| `exempt-organization`           | (not set)                                                                                                                                                                                                                                           | Name of a GitHub organization. Branches for which the latest committer belongs to this organization will be exempt from cleanup.                                                                                                                               |
 | `restrict-branches-regex`       | `^.*$`                                                                                                                                                                                                                                              | Regular expression defining the branch names that should be considered for cleanup.                                                                                                                                                                            |
 | `exempt-branches-regex`         | `^(main\|master)$`                                                                                                                                                                                                                                  | Regular expression defining branch names that are exempt from cleanup, out of the ones selected for cleanup using `restrict-branches-regex`.                                                                                                                   |
 | `exempt-authors-regex`          | (not set)                                                                                                                                                                                                                                           | Regular expression defining authors who are exempt from cleanup.                                                                                                                                                                                               |
@@ -34,7 +35,7 @@ You can also restrict this action to a subset of your branches using the `restri
 | `operations-per-run`            | `10`                                                                                                                                                                                                                                                | Maximum number of stale branches to look at in any run of this action.                                                                                                                                                                                         |
 | `ignore-unknown-authors`        | `false`                                                                                                                                                                                                                                             | Whether to abort early when a commit author cannot be identified. By default, stop early since this may indicate that the token used to run the action doesn't have the right privileges. Set to true and define a default recipient instead if not a concern. |
 | `default-recipient`             | (not set)                                                                                                                                                                                                                                           | When `ignore-unknown-authors` is `true`, use this login as the author to notify when the branch becomes stale.                                                                                                                                                 |
-| `remap-authors`                 | (not set)                                                                                                                                                                                                                                           | A JSON formatted string that can remap branch authors onto the ones that will be notified. This can be useful when people are on longer leave.                                                                                                                                                 |
+| `remap-authors`                 | (not set)                                                                                                                                                                                                                                           | A JSON formatted string that can remap branch authors onto the ones that will be notified. This can be useful when people are on longer leave.                                                                                                                 |
 | `ignore-branches-with-open-prs` | `false`                                                                                                                                                                                                                                             | When `ignore-branches-with-open-prs` is `true`, branches with open PRs will be ignored.                                                                                                                                                                        |
 
 ### Tokens replaced in `stale-branch-message`
@@ -42,7 +43,7 @@ You can also restrict this action to a subset of your branches using the `restri
 The following tokens are replaced when composing a comment on a stale branch:
 
 | Token                    | Description                                                                                                                                                                    | Example                                                                      |
-| ------------------------ | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------  | ---------------------------------------------------------------------------- |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | {branchName}             | The name of the branch slated for removal                                                                                                                                      | `fix/my-branch-123`                                                          |
 | {branchUrl}              | A url pointing to the branch slated for removal                                                                                                                                | `https://github.com/fpicalausa/remove-stale-branches/tree/fix/my-branch-123` |
 | {repoOwner}              | The name of the owner (organization or individual) of the repo                                                                                                                 | `fpicalausa`                                                                 |
@@ -51,9 +52,20 @@ The following tokens are replaced when composing a comment on a stale branch:
 | {daysBeforeBranchStale}  | The number of days before a branch is considered stale                                                                                                                         | `60`                                                                         |
 | {daysBeforeBranchDelete} | The number of days before a branch marked for removal gets deleted                                                                                                             | `7`                                                                          |
 
+## Output
+
+| Output                        | Type       | Description                                                                                        |
+| ----------------------------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| scanned_branches              | number     | Total number of branches scanned.                                                                  |
+| removed_branches              | JSON Array | List of objects containing branchName, author, and lastUpdated for deleted branches.               |
+| removed_branches_count        | number     | Total count of branches deleted.                                                                   |
+| new_stale_branches            | JSON Array | List of objects containing branchName, author, and lastUpdated for branches newly marked as stale. |
+| new_stale_branches_count      | number     | Total count of branches newly marked as stale.                                                     |
+| existing_stale_branches_count | number     | Total count of branches that were already stale and kept.                                          |
+
 ## Example usage
 
-The follow examples show how you can use this action.
+The following examples show how you can use this action.
 
 ### Default configuration
 
@@ -69,7 +81,7 @@ jobs:
     name: Remove Stale Branches
     runs-on: ubuntu-latest
     steps:
-      - uses: fpicalausa/remove-stale-branches@v1.6.0
+      - uses: fpicalausa/remove-stale-branches@v2.4.0
         with:
           dry-run: true # Check out the console output before setting this to false
 ```
@@ -88,7 +100,7 @@ jobs:
     name: Remove Stale Branches
     runs-on: ubuntu-latest
     steps:
-      - uses: fpicalausa/remove-stale-branches@v1.6.0
+      - uses: fpicalausa/remove-stale-branches@v2.4.0
         with:
           dry-run: true # Check out the console output before setting this to false
           exempt-organization: "acme-inc"
@@ -122,12 +134,13 @@ This action notifies users through a commit comment. There are pros and cons to 
 To start, install dependencies with `npm install`. The source files live under `src`.
 
 You can run the tool locally by:
+
 1. Set `GITHUB_TOKEN` in a .env file with a PAT with correct access
 2. Edit `src/cli.ts` as needed to point to the correct repo
 3. Run `src/cli.ts` under `ts-node` as follows:
 
-    ```shell
-    source .env && npx ts-node src/cli.ts
-    ```
+   ```shell
+   source .env && npx tsx src/cli.ts
+   ```
 
 To deploy you changes, start a PR. Don't forget to run `npm run build` and include changes to the `dist` dir in your commit.

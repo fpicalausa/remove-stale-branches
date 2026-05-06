@@ -5,7 +5,7 @@ branding:
   icon: user-x
   color: green
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/index.js"
 inputs:
   github-token:
@@ -20,17 +20,17 @@ inputs:
     default: "false"
   exempt-organization:
     description: >
-      Name of a Github organization. Branches for which the latest commiter
+      Name of a GitHub organization. Branches for which the latest committer
       belongs to this organization will be exempt from cleanup.
     required: false
   restrict-branches-regex:
     description: >
-      Regular expression defining branches name that are eligible for cleanup.
+      Regular expression defining branch names that are eligible for cleanup.
       Defaults to all.
     required: false
   exempt-branches-regex:
     description: >
-      Regular expression defining branches name that are exempt from cleanup,
+      Regular expression defining branch names that are exempt from cleanup,
       out of the ones selected for cleanup using `restrict-branches-regex`.
       Defaults to `^(main|master)$`.
     required: false
@@ -106,5 +106,23 @@ inputs:
     default: "false"
     required: false
   remap-authors:
-    description: "A JSON mapping overriding some commit authors to Github usernames. The remapped names will be used in the comments."
+    description: "A JSON mapping overriding some commit authors to GitHub usernames. The remapped names will be used in the comments."
     required: false
+  repository:
+    description: >
+      Target repository in the format `owner/repo`. Defaults to the repository
+      the workflow is running in.
+    required: false
+outputs:
+  scanned_branches:
+    description: 'Total number of branches scanned'
+  removed_branches:
+    description: 'JSON list of deleted branches'
+  removed_branches_count:
+    description: 'Total count of deleted branches'
+  new_stale_branches:
+    description: 'JSON list of newly stale branches'
+  new_stale_branches_count:
+    description: 'Total count of newly stale branches'
+  existing_stale_branches_count:
+    description: 'Total count of existing stale branches'
