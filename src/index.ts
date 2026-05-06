@@ -2,6 +2,7 @@ import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { removeStaleBranches } from "./removeStaleBranches";
 import { Params } from "./types";
+import useFakeTimers = jest.useFakeTimers;
 
 function getRunConfig(): Params {
   const isDryRun = core.getBooleanInput("dry-run", { required: false });
@@ -88,7 +89,21 @@ async function run(): Promise<void> {
   const octokit = github.getOctokit(githubToken);
 
   const runConfig = getRunConfig();
-  return removeStaleBranches(octokit, runConfig);
+
+  try {
+    const { summary, details } = await removeStaleBranches(octokit, runConfig);
+
+    core.setOutput("scanned_branches", summary.scanned);
+    core.setOutput("removed_branches", details.remove);
+    core.setOutput("removed_branches_count", summary.remove);
+    core.setOutput("new_stale_branches", details["mark stale"]);
+    core.setOutput("new_stale_branches_count", summary["mark stale"]);
+    core.setOutput("existing_stale_branches_count", summary["keep stale"]);
+  } catch (e) {
+    if (e && typeof e === "object" && e instanceof Error) {
+      core.setFailed(e);
+    }
+  }
 }
 
 run();
