@@ -4,6 +4,7 @@ import { constants, existsSync, promises, readFileSync } from "fs";
 import * as os$1 from "os";
 import os, { EOL } from "os";
 import * as events from "events";
+import * as crypto from "crypto";
 import * as path from "path";
 import "child_process";
 import "timers";
@@ -18811,6 +18812,23 @@ function toCommandValue(input) {
 	else if (typeof input === "string" || input instanceof String) return input;
 	return JSON.stringify(input);
 }
+/**
+*
+* @param annotationProperties
+* @returns The command properties to send with the actual annotation command
+* See IssueCommandProperties: https://github.com/actions/runner/blob/main/src/Runner.Worker/ActionCommandManager.cs#L646
+*/
+function toCommandProperties(annotationProperties) {
+	if (!Object.keys(annotationProperties).length) return {};
+	return {
+		title: annotationProperties.title,
+		file: annotationProperties.file,
+		line: annotationProperties.startLine,
+		endLine: annotationProperties.endLine,
+		col: annotationProperties.startColumn,
+		endColumn: annotationProperties.endColumn
+	};
+}
 //#endregion
 //#region node_modules/@actions/core/lib/command.js
 /**
@@ -18884,6 +18902,21 @@ function escapeData(s) {
 }
 function escapeProperty(s) {
 	return toCommandValue(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/:/g, "%3A").replace(/,/g, "%2C");
+}
+//#endregion
+//#region node_modules/@actions/core/lib/file-command.js
+function issueFileCommand(command, message) {
+	const filePath = process.env[`GITHUB_${command}`];
+	if (!filePath) throw new Error(`Unable to find environment variable for file command ${command}`);
+	if (!fs.existsSync(filePath)) throw new Error(`Missing file at path: ${filePath}`);
+	fs.appendFileSync(filePath, `${toCommandValue(message)}${os$1.EOL}`, { encoding: "utf8" });
+}
+function prepareKeyValueMessage(key, value) {
+	const delimiter = `ghadelimiter_${crypto.randomUUID()}`;
+	const convertedValue = toCommandValue(value);
+	if (key.includes(delimiter)) throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
+	if (convertedValue.includes(delimiter)) throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
+	return `${key}<<${delimiter}${os$1.EOL}${convertedValue}${os$1.EOL}${delimiter}`;
 }
 require_tunnel();
 var HttpCodes;
@@ -19451,6 +19484,34 @@ function getBooleanInput(name, options) {
 	if (trueValue.includes(val)) return true;
 	if (falseValue.includes(val)) return false;
 	throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}\nSupport boolean input list: \`true | True | TRUE | false | False | FALSE\``);
+}
+/**
+* Sets the value of an output.
+*
+* @param     name     name of the output to set
+* @param     value    value to store. Non-string values will be converted to a string via JSON.stringify
+*/
+function setOutput(name, value) {
+	if (process.env["GITHUB_OUTPUT"] || "") return issueFileCommand("OUTPUT", prepareKeyValueMessage(name, value));
+	process.stdout.write(os$1.EOL);
+	issueCommand("set-output", { name }, toCommandValue(value));
+}
+/**
+* Sets the action status to failed.
+* When the action exits it will be with an exit code of 1
+* @param message add error issue message
+*/
+function setFailed(message) {
+	process.exitCode = ExitCode.Failure;
+	error(message);
+}
+/**
+* Adds an error issue
+* @param message error issue message. Errors will be converted to string via toString()
+* @param properties optional properties to add to the annotation.
+*/
+function error(message, properties = {}) {
+	issueCommand("error", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 /**
 * Begin an output group.
@@ -20046,16 +20107,17 @@ async function removeStaleBranches(octokit, params) {
 		skip: 0,
 		scanned: 0
 	};
-	if (params.ignoreUnknownAuthors && !params.defaultRecipient) {
-		console.error("When ignoring unknown authors, you must specify a default recipient");
-		return;
-	}
+	if (params.ignoreUnknownAuthors && !params.defaultRecipient) throw Error("When ignoring unknown authors, you must specify a default recipient");
 	logActionRunConfiguration(params, staleCutoff, removeCutoff);
 	const icons = {
 		remove: "❌",
 		"mark stale": "⚰️",
 		"keep stale": "😐",
 		skip: "✅"
+	};
+	const details = {
+		"mark stale": [],
+		remove: []
 	};
 	for await (const branch of readBranches(octokit, headers, repo, params.protectedOrganizationName)) {
 		summary.scanned++;
@@ -20065,12 +20127,17 @@ async function removeStaleBranches(octokit, params) {
 		try {
 			await processBranch(plan, branch, commitComments, params);
 			if (plan.action !== "skip" && plan.action != "keep stale") operations++;
+			if (plan.action === "mark stale" || plan.action === "remove") details[plan.action].push({
+				branchName: branch.branchName,
+				author: branch.author?.username || branch.author?.email || null,
+				lastUpdated: branch.date
+			});
 		} finally {
 			endGroup();
 		}
 		if (operations >= params.operationsPerRun) {
 			console.log("Stopping after " + operations + " operations");
-			return;
+			break;
 		}
 	}
 	const actionSummary = [
@@ -20081,6 +20148,10 @@ async function removeStaleBranches(octokit, params) {
 		`${icons.remove} ${summary.remove} removed`
 	].join(", ");
 	console.log(`Summary:  ${actionSummary}`);
+	return {
+		summary,
+		details
+	};
 }
 //#endregion
 //#region src/index.ts
@@ -20123,7 +20194,19 @@ function getRunConfig() {
 	};
 }
 async function run() {
-	return removeStaleBranches(getOctokit(getInput("github-token", { required: true })), getRunConfig());
+	const octokit = getOctokit(getInput("github-token", { required: true }));
+	const runConfig = getRunConfig();
+	try {
+		const { summary, details } = await removeStaleBranches(octokit, runConfig);
+		setOutput("scanned_branches", summary.scanned);
+		setOutput("removed_branches", details.remove);
+		setOutput("removed_branches_count", summary.remove);
+		setOutput("new_stale_branches", details["mark stale"]);
+		setOutput("new_stale_branches_count", summary["mark stale"]);
+		setOutput("existing_stale_branches_count", summary["keep stale"]);
+	} catch (e) {
+		if (e && typeof e === "object" && e instanceof Error) setFailed(e);
+	}
 }
 run();
 //#endregion
