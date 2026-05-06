@@ -11,7 +11,7 @@
     "build": "rolldown -c",
     "test": "jest",
     "prettier:write": "prettier --write \"src/*.ts\"",
-    "cli": "ts-node src/cli.ts"
+    "cli": "tsx src/cli.ts"
   },
   "dependencies": {
     "@actions/core": "^3.0.1",
@@ -26,7 +26,7 @@
     "prettier": "^3.8.3",
     "rolldown": "^1.0.0-rc.18",
     "ts-jest": "^29.4.9",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   }
 }
