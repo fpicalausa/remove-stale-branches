@@ -146,7 +146,7 @@ type Ref = {
     nodes: [
       {
         state: "OPEN";
-      }
+      },
     ];
   };
   prefix: string;
@@ -169,7 +169,7 @@ export async function* readBranches(
   octokit: Octokit,
   headers: { [key: string]: string },
   repo: Repo,
-  organization?: string
+  organization?: string,
 ): AsyncGenerator<Branch> {
   let pagination: PageInfo = {
     hasNextPage: true,
@@ -192,7 +192,7 @@ export async function* readBranches(
       },
     } = await octokit.graphql<{ repository: Repository }>(
       organization ? GRAPHQL_QUERY_WITH_ORG : GRAPHQL_QUERY,
-      params
+      params,
     );
 
     for (let i = 0; i < edges.length; ++i) {
