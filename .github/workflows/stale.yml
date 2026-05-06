@@ -7,7 +7,7 @@ jobs:
     name: Cleanup stale branches
     runs-on: ubuntu-latest
     steps:
-      - uses: fpicalausa/remove-stale-branches@chore/bump-dependencies
+      - uses: fpicalausa/remove-stale-branches@master
         with:
           days-before-branch-stale: 15
           dry-run: false
