@@ -239,10 +239,14 @@ function logActionRunConfiguration(
   }
 }
 
+type Summary = Record<Plan["action"], number> & { scanned: number };
+
+type Details = Record<"mark stale" | "remove", { branchName: string, author: string | null, lastUpdated: number }[]>;
+
 export async function removeStaleBranches(
   octokit: Octokit,
   params: Params,
-): Promise<void> {
+): Promise<{ summary: Summary, details: Details }> {
   const headers: { [key: string]: string } = params.githubToken
     ? {
         "Content-Type": "application/json",
@@ -274,7 +278,7 @@ export async function removeStaleBranches(
   };
   const commitComments = new TaggedCommitComments(repo, octokit, headers);
   let operations = 0;
-  let summary: Record<Plan["action"], number> & { scanned: number } = {
+  let summary: Summary = {
     remove: 0,
     "mark stale": 0,
     "keep stale": 0,
@@ -294,6 +298,11 @@ export async function removeStaleBranches(
     "keep stale": "😐",
     skip: "✅",
   } as const;
+
+  const details: Details = {
+    'mark stale': [],
+    remove: []
+  }
 
   for await (const branch of readBranches(
     octokit,
@@ -317,6 +326,10 @@ export async function removeStaleBranches(
       if (plan.action !== "skip" && plan.action != "keep stale") {
         operations++;
       }
+
+      if (plan.action === 'mark stale' || plan.action === 'remove') {
+        details[plan.action].push({ branchName: branch.branchName, author: branch.author?.username || branch.author?.email || null, lastUpdated: branch.date })
+      }
     } finally {
       core.endGroup();
     }
@@ -335,4 +348,5 @@ export async function removeStaleBranches(
     `${icons.remove} ${summary.remove} removed`,
   ].join(", ");
   console.log(`Summary:  ${actionSummary}`);
+  return { summary, details };
 }

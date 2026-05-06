@@ -113,3 +113,16 @@ inputs:
       Target repository in the format `owner/repo`. Defaults to the repository
       the workflow is running in.
     required: false
+outputs:
+  scanned_branches:
+    description: 'Total number of branches scanned'
+  removed_branches:
+    description: 'JSON list of deleted branches'
+  removed_branches_count:
+    description: 'Total count of deleted branches'
+  new_stale_branches:
+    description: 'JSON list of newly stale branches'
+  new_stale_branches_count:
+    description: 'Total count of newly stale branches'
+  existing_stale_branches_count:
+    description: 'Total count of existing stale branches'
