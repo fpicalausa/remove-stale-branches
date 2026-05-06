@@ -347,6 +347,9 @@ export async function removeStaleBranches(
       console.log("Stopping after " + operations + " operations");
       break;
     }
+    await Promise.all(branchPromises);
+  } catch (e) {
+    console.error("Error reading branches:", e);
   }
 
   const actionSummary = [
