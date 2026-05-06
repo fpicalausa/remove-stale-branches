@@ -20,13 +20,13 @@ async function processBranch(
   plan: Plan,
   branch: Branch,
   commitComments: TaggedCommitComments,
-  params: Params
+  params: Params,
 ) {
   console.log(
     "-> branch was last updated by " +
       (branch.author?.username || branch.author?.email || "(unknown user)") +
       " on " +
-      formatISO(branch.date)
+      formatISO(branch.date),
   );
 
   if (plan.action === "skip") {
@@ -38,15 +38,13 @@ async function processBranch(
     let author = "";
     console.log("-> branch will be removed on " + formatISO(plan.cutoffTime));
     if (!branch.author?.username) {
-      author=params.defaultRecipient || "";
+      author = params.defaultRecipient || "";
     } else if (params.remapAuthors[branch.author.username]) {
-      author=params.remapAuthors[branch.author.username];
+      author = params.remapAuthors[branch.author.username];
     } else {
-      author=branch.author.username;
+      author = branch.author.username;
     }
-    console.log(
-      "-> marking branch as stale (notifying: " + author + ")"
-    );
+    console.log("-> marking branch as stale (notifying: " + author + ")");
 
     if (params.isDryRun) {
       console.log("-> (doing nothing because of dry run flag)");
@@ -62,13 +60,13 @@ async function processBranch(
         branch,
         params,
         params.repo,
-        author
+        author,
       ),
     });
   }
 
   console.log(
-    "-> branch was marked stale on " + formatISO(plan.lastCommentTime)
+    "-> branch was marked stale on " + formatISO(plan.lastCommentTime),
   );
 
   if (plan.action === "keep stale") {
@@ -78,7 +76,7 @@ async function processBranch(
 
   if (plan.action === "remove") {
     console.log(
-      "-> branch was slated for deletion on " + formatISO(plan.cutoffTime)
+      "-> branch was slated for deletion on " + formatISO(plan.cutoffTime),
     );
     console.log("-> removing branch");
     if (params.isDryRun) {
@@ -116,7 +114,7 @@ type Comment = { created_at: string; id: number };
 
 async function getCommitCommentsForBranch(
   commitComments: TaggedCommitComments,
-  branch: Branch
+  branch: Branch,
 ): Promise<Comment[]> {
   const commentTag = "stale:" + branch.branchName;
   return await commitComments.getCommitCommentsWithTag({
@@ -130,7 +128,7 @@ async function planBranchAction(
   branch: Branch,
   filters: BranchFilters,
   commitComments: TaggedCommitComments,
-  params: Params
+  params: Params,
 ): Promise<Plan> {
   if (
     branch.author &&
@@ -138,12 +136,12 @@ async function planBranchAction(
     branch.author.belongsToOrganization
   ) {
     return skip(
-      `author ${branch.author.username} belongs to protected organization ${params.protectedOrganizationName}`
+      `author ${branch.author.username} belongs to protected organization ${params.protectedOrganizationName}`,
     );
   }
   if (!branch.author?.username && !params.ignoreUnknownAuthors) {
     return skip(
-      `unable to determine username of author for branch ${branch.branchName}`
+      `unable to determine username of author for branch ${branch.branchName}`,
     );
   }
 
@@ -159,10 +157,16 @@ async function planBranchAction(
     return skip(`author ${branch.author.username} is exempted`);
   }
 
-  if (filters.allowedBranchesRegex && !filters.allowedBranchesRegex.test(branch.branchName)) {
+  if (
+    filters.allowedBranchesRegex &&
+    !filters.allowedBranchesRegex.test(branch.branchName)
+  ) {
     return skip(`branch ${branch.branchName} is outside of branch selection`);
   }
-  if (filters.deniedBranchesRegex && filters.deniedBranchesRegex.test(branch.branchName)) {
+  if (
+    filters.deniedBranchesRegex &&
+    filters.deniedBranchesRegex.test(branch.branchName)
+  ) {
     return skip(`branch ${branch.branchName} is exempted`);
   }
 
@@ -173,8 +177,8 @@ async function planBranchAction(
   if (branch.date >= filters.staleCutoff) {
     return skip(
       `branch ${branch.branchName} was updated recently (${formatISO(
-        branch.date
-      )})`
+        branch.date,
+      )})`,
     );
   }
 
@@ -193,7 +197,7 @@ async function planBranchAction(
 
   const cutoffTime = addDays(
     latestStaleComment,
-    params.daysBeforeBranchDelete
+    params.daysBeforeBranchDelete,
   ).getTime();
   if (latestStaleComment >= filters.removeCutoff) {
     return {
@@ -214,30 +218,30 @@ async function planBranchAction(
 function logActionRunConfiguration(
   params: Params,
   staleCutoff: number,
-  removeCutoff: number
+  removeCutoff: number,
 ) {
   if (params.isDryRun) {
     console.log("Running in dry-run mode. No branch will be removed.");
   }
 
   console.log(
-    `Branches updated before ${formatISO(staleCutoff)} will be marked as stale`
+    `Branches updated before ${formatISO(staleCutoff)} will be marked as stale`,
   );
 
   if (params.daysBeforeBranchDelete == 0) {
     console.log(
-      "Branches will be instantly removed due to days-before-branch-delete being set to 0."
+      "Branches will be instantly removed due to days-before-branch-delete being set to 0.",
     );
   } else {
     console.log(
-      `Branches marked stale before ${formatISO(removeCutoff)} will be removed`
+      `Branches marked stale before ${formatISO(removeCutoff)} will be removed`,
     );
   }
 }
 
 export async function removeStaleBranches(
   octokit: Octokit,
-  params: Params
+  params: Params,
 ): Promise<void> {
   const headers: { [key: string]: string } = params.githubToken
     ? {
@@ -280,7 +284,7 @@ export async function removeStaleBranches(
 
   if (params.ignoreUnknownAuthors && !params.defaultRecipient) {
     console.error(
-      "When ignoring unknown authors, you must specify a default recipient"
+      "When ignoring unknown authors, you must specify a default recipient",
     );
     return;
   }
@@ -298,7 +302,7 @@ export async function removeStaleBranches(
     octokit,
     headers,
     repo,
-    params.protectedOrganizationName
+    params.protectedOrganizationName,
   )) {
     summary.scanned++;
     const plan = await planBranchAction(
@@ -306,7 +310,7 @@ export async function removeStaleBranches(
       branch,
       filters,
       commitComments,
-      params
+      params,
     );
     summary[plan.action]++;
     core.startGroup(`${icons[plan.action]} branch ${branch.branchName}`);

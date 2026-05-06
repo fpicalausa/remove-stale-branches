@@ -128,7 +128,7 @@ You can run the tool locally by:
 3. Run `src/cli.ts` under `ts-node` as follows:
 
     ```shell
-    source .env && npx ts-node src/cli.ts
+    source .env && npx tsx src/cli.ts
     ```
 
 To deploy you changes, start a PR. Don't forget to run `npm run build` and include changes to the `dist` dir in your commit.

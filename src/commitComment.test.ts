@@ -19,13 +19,13 @@ describe("Commit comments", () => {
       },
       {
         daysBeforeBranchStale: 5,
-        daysBeforeBranchDelete: 10
+        daysBeforeBranchDelete: 10,
       },
       {
         repo: "octocat",
         owner: "github",
       },
-      "anotheruser"
+      "anotheruser",
     );
 
     const expected =
