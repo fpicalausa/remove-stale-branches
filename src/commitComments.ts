@@ -31,12 +31,9 @@ export class TaggedCommitComments {
   static formatCommentMessage(
     messageTemplate: string,
     branch: Branch,
-    config: Pick<
-      Params,
-      "daysBeforeBranchStale" | "daysBeforeBranchDelete"
-    >,
+    config: Pick<Params, "daysBeforeBranchStale" | "daysBeforeBranchDelete">,
     repo: Repo,
-    username: string
+    username: string,
   ) {
     const serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com";
     return messageTemplate
@@ -44,19 +41,19 @@ export class TaggedCommitComments {
       .replace(
         /[{]branchUrl[}]/g,
         `${serverUrl}/${encodeURIComponent(repo.owner)}/${encodeURIComponent(
-          repo.repo
-        )}/tree/${encodeURIComponent(branch.branchName)}`
+          repo.repo,
+        )}/tree/${encodeURIComponent(branch.branchName)}`,
       )
       .replace(/[{]repoOwner[}]/g, repo.owner)
       .replace(/[{]repoName[}]/g, repo.repo)
       .replace(/[{]author[}]/g, username)
       .replace(
         /[{]daysBeforeBranchStale[}]/g,
-        String(config.daysBeforeBranchStale)
+        String(config.daysBeforeBranchStale),
       )
       .replace(
         /[{]daysBeforeBranchDelete[}]/g,
-        String(config.daysBeforeBranchDelete)
+        String(config.daysBeforeBranchDelete),
       );
   }
 
@@ -71,12 +68,12 @@ export class TaggedCommitComments {
           headers: this.headers,
           ...this.repo,
           commit_sha: commitSHA,
-        }
+        },
       )
     ).data;
 
     return messages.filter((comment) =>
-      comment.body.startsWith("[" + commentTag + "]")
+      comment.body.startsWith("[" + commentTag + "]"),
     );
   }
 
@@ -93,7 +90,7 @@ export class TaggedCommitComments {
         ...this.repo,
         commit_sha: commitSHA,
         body,
-      }
+      },
     );
   }
 
@@ -104,7 +101,7 @@ export class TaggedCommitComments {
         headers: this.headers,
         ...this.repo,
         comment_id: commentId,
-      }
+      },
     );
   }
 
@@ -132,7 +129,7 @@ export class TaggedCommitComments {
       {
         headers: this.headers,
         ...this.repo,
-      }
+      },
     );
 
     return data;

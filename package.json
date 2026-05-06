@@ -4,27 +4,29 @@
   "version": "2.5.0",
   "description": "Cleanup stale branches from a repository",
   "main": "src/index.ts",
+  "type": "module",
   "author": "Francois Picalausa <fpicalausa@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "ncc build src/index.ts",
+    "build": "rolldown -c",
     "test": "jest",
     "prettier:write": "prettier --write \"src/*.ts\"",
     "cli": "ts-node src/cli.ts"
   },
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
     "date-fns": "^4.1.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.14",
-    "@types/node": "^22.15.12",
-    "@vercel/ncc": "^0.38.3",
-    "jest": "^29.7.0",
-    "prettier": "3.5.3",
-    "ts-jest": "^29.3.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.6.0",
+    "@vercel/ncc": "^0.38.4",
+    "jest": "^30.3.0",
+    "prettier": "^3.8.3",
+    "rolldown": "^1.0.0-rc.18",
+    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^6.0.3"
   }
 }
