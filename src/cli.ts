@@ -8,6 +8,11 @@ let octokit = new Octokit({
   },
 });
 
+if (!process.env.GITHUB_TOKEN) {
+  console.error("No GITHUB_TOKEN found. Aborting.");
+  process.exit(2);
+}
+
 const timer = setTimeout(() => {}, 120000);
 removeStaleBranches(octokit, {
   isDryRun: true,
