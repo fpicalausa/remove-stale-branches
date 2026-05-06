@@ -326,7 +326,7 @@ export async function removeStaleBranches(
 
     if (operations >= params.operationsPerRun) {
       console.log("Stopping after " + operations + " operations");
-      return;
+      break;
     }
   }
 
