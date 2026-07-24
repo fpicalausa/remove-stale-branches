@@ -19831,6 +19831,29 @@ var TaggedCommitComments = class {
 			comment_id: commentId
 		});
 	}
+	async getPullRequestCommentsWithTag({ commentTag, prNumber }) {
+		return (await this.octokit.request("GET /repos/{owner}/{repo}/issues/{issue_number}/comments", {
+			headers: this.headers,
+			...this.repo,
+			issue_number: prNumber
+		})).data.filter((comment) => comment.body?.startsWith("[" + commentTag + "]"));
+	}
+	async addPullRequestComment({ commentTag, commentBody, prNumber }) {
+		const body = `[${commentTag}]\r\n\r\n${commentBody}`;
+		await this.octokit.request("POST /repos/{owner}/{repo}/issues/{issue_number}/comments", {
+			headers: this.headers,
+			...this.repo,
+			issue_number: prNumber,
+			body
+		});
+	}
+	async deletePullRequestComment({ commentId }) {
+		return this.octokit.request("DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}", {
+			headers: this.headers,
+			...this.repo,
+			comment_id: commentId
+		});
+	}
 	async getBranch(branch) {
 		const ref = branch.prefix.replace(/^refs\//, "") + branch.branchName;
 		return this.octokit.request("GET /repos/{owner}/{repo}/git/refs/{ref}", {
@@ -19870,6 +19893,7 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
           name
           associatedPullRequests(first: 1, states: OPEN) {
             nodes {
+              number
               state
             }
           }
@@ -19913,6 +19937,7 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
           name
           associatedPullRequests(first: 1, states: OPEN) {
             nodes {
+              number
               state
             }
           }
@@ -19978,7 +20003,8 @@ async function* readBranches(octokit, headers, repo, organization) {
 				commitId: oid,
 				author: branchAuthor,
 				isProtected: refUpdateRule !== null,
-				openPrs: associatedPullRequests.nodes.length > 0
+				openPrs: associatedPullRequests.nodes.length > 0,
+				prNumber: associatedPullRequests.nodes[0]?.number ?? null
 			};
 		}
 		pagination = pageInfo;
@@ -20004,10 +20030,16 @@ async function processBranch(plan, branch, commitComments, params) {
 			return;
 		}
 		const commentTag = "stale:" + branch.branchName;
+		const commentBody = TaggedCommitComments.formatCommentMessage(params.staleCommentMessage, branch, params, params.repo, author);
+		if (commentsOnPr(branch, params)) return await commitComments.addPullRequestComment({
+			commentTag,
+			prNumber: branch.prNumber,
+			commentBody
+		});
 		return await commitComments.addCommitComments({
 			commentTag,
 			commitSHA: branch.commitId,
-			commentBody: TaggedCommitComments.formatCommentMessage(params.staleCommentMessage, branch, params, params.repo, author)
+			commentBody
 		});
 	}
 	console.log("-> branch was marked stale on " + formatISO(plan.lastCommentTime));
@@ -20024,7 +20056,8 @@ async function processBranch(plan, branch, commitComments, params) {
 		}
 		commitComments.deleteBranch(branch);
 		plan.comments.forEach((c) => {
-			commitComments.deleteCommitComments({ commentId: c.id });
+			if (commentsOnPr(branch, params)) commitComments.deletePullRequestComment({ commentId: c.id });
+			else commitComments.deleteCommitComments({ commentId: c.id });
 		});
 	}
 }
@@ -20034,8 +20067,15 @@ function skip(reason) {
 		reason
 	};
 }
-async function getCommitCommentsForBranch(commitComments, branch) {
+function commentsOnPr(branch, params) {
+	return params.commentOnOpenPrs && branch.openPrs && branch.prNumber !== null;
+}
+async function getCommitCommentsForBranch(commitComments, branch, params) {
 	const commentTag = "stale:" + branch.branchName;
+	if (commentsOnPr(branch, params)) return await commitComments.getPullRequestCommentsWithTag({
+		commentTag,
+		prNumber: branch.prNumber
+	});
 	return await commitComments.getCommitCommentsWithTag({
 		commentTag,
 		commitSHA: branch.commitId
@@ -20050,7 +20090,7 @@ async function planBranchAction(now, branch, filters, commitComments, params) {
 	if (filters.deniedBranchesRegex && filters.deniedBranchesRegex.test(branch.branchName)) return skip(`branch ${branch.branchName} is exempted`);
 	if (filters.exemptProtectedBranches && branch.isProtected) return skip(`branch ${branch.branchName} is protected`);
 	if (branch.date >= filters.staleCutoff) return skip(`branch ${branch.branchName} was updated recently (${formatISO(branch.date)})`);
-	const comments = await getCommitCommentsForBranch(commitComments, branch);
+	const comments = await getCommitCommentsForBranch(commitComments, branch, params);
 	if (comments.length == 0 && params.daysBeforeBranchDelete !== 0) return {
 		action: "mark stale",
 		cutoffTime: addDays(now, params.daysBeforeBranchDelete).getTime()
@@ -20190,7 +20230,8 @@ function getRunConfig() {
 		defaultRecipient,
 		remapAuthors,
 		ignoreUnknownAuthors: getBooleanInput("ignore-unknown-authors", { required: false }),
-		ignoreBranchesWithOpenPRs: getBooleanInput("ignore-branches-with-open-prs", { required: false })
+		ignoreBranchesWithOpenPRs: getBooleanInput("ignore-branches-with-open-prs", { required: false }),
+		commentOnOpenPrs: getBooleanInput("comment-on-open-prs", { required: false })
 	};
 }
 async function run() {

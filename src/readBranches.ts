@@ -14,6 +14,7 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
           name
           associatedPullRequests(first: 1, states: OPEN) {
             nodes {
+              number
               state
             }
           }
@@ -57,6 +58,7 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
           name
           associatedPullRequests(first: 1, states: OPEN) {
             nodes {
+              number
               state
             }
           }
@@ -143,11 +145,10 @@ type Ref = {
   id: unknown;
   name: string;
   associatedPullRequests: {
-    nodes: [
-      {
-        state: "OPEN";
-      },
-    ];
+    nodes: Array<{
+       number: number;
+       state: "OPEN";
+    }>;
   };
   prefix: string;
   refUpdateRule: unknown | null;
@@ -219,6 +220,7 @@ export async function* readBranches(
         author: branchAuthor,
         isProtected: refUpdateRule !== null,
         openPrs: associatedPullRequests.nodes.length > 0,
+        prNumber: associatedPullRequests.nodes[0]?.number ?? null,
       };
     }
     pagination = pageInfo;

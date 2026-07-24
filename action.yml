@@ -105,6 +105,14 @@ inputs:
     description: "Whether to ignore branches with open pull requests."
     default: "false"
     required: false
+  comment-on-open-prs:
+    description: >
+      Whether to leave the stale notification as a comment on the branch's open
+      pull request instead of on the last commit. Branches without an open pull
+      request continue to receive a commit comment. Requires the
+      `issues: write` scope.
+    default: "false"
+    required: false
   remap-authors:
     description: "A JSON mapping overriding some commit authors to GitHub usernames. The remapped names will be used in the comments."
     required: false

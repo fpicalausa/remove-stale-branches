@@ -17,6 +17,10 @@ type CommentId = {
   commentId: number;
 };
 
+type PullRequest = {
+  prNumber: number;
+};
+
 export class TaggedCommitComments {
   private readonly repo: Repo;
   private readonly octokit: Octokit;
@@ -97,6 +101,54 @@ export class TaggedCommitComments {
   async deleteCommitComments({ commentId }: CommentId) {
     return this.octokit.request(
       "DELETE /repos/{owner}/{repo}/comments/{comment_id}",
+      {
+        headers: this.headers,
+        ...this.repo,
+        comment_id: commentId,
+      },
+    );
+  }
+
+  async getPullRequestCommentsWithTag({
+    commentTag,
+    prNumber,
+  }: PullRequest & CommentTag) {
+    const messages = (
+      await this.octokit.request(
+        "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+        {
+          headers: this.headers,
+          ...this.repo,
+          issue_number: prNumber,
+        },
+      )
+    ).data;
+
+    return messages.filter((comment) =>
+      comment.body?.startsWith("[" + commentTag + "]"),
+    );
+  }
+
+  async addPullRequestComment({
+    commentTag,
+    commentBody,
+    prNumber,
+  }: PullRequest & CommentTag & CommentBody) {
+    const body = `[${commentTag}]\r\n\r\n${commentBody}`;
+    await this.octokit.request(
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
+      {
+        headers: this.headers,
+        ...this.repo,
+        issue_number: prNumber,
+        body,
+      },
+    );
+  }
+
+  async deletePullRequestComment({ commentId }: CommentId) {
+    return this.octokit.request(
+      "DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}",
       {
         headers: this.headers,
         ...this.repo,
