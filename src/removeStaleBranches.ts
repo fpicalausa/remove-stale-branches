@@ -52,16 +52,24 @@ async function processBranch(
     }
 
     const commentTag = "stale:" + branch.branchName;
+    const commentBody = TaggedCommitComments.formatCommentMessage(
+      params.staleCommentMessage,
+      branch,
+      params,
+      params.repo,
+      author,
+    );
+    if (commentsOnPr(branch, params)) {
+      return await commitComments.addPullRequestComment({
+        commentTag,
+        prNumber: branch.prNumber,
+        commentBody,
+      });
+    }
     return await commitComments.addCommitComments({
       commentTag,
       commitSHA: branch.commitId,
-      commentBody: TaggedCommitComments.formatCommentMessage(
-        params.staleCommentMessage,
-        branch,
-        params,
-        params.repo,
-        author,
-      ),
+      commentBody,
     });
   }
 
@@ -87,7 +95,11 @@ async function processBranch(
     commitComments.deleteBranch(branch);
 
     plan.comments.forEach((c) => {
-      commitComments.deleteCommitComments({ commentId: c.id });
+      if (commentsOnPr(branch, params)) {
+        commitComments.deletePullRequestComment({ commentId: c.id });
+      } else {
+        commitComments.deleteCommitComments({ commentId: c.id });
+      }
     });
   }
 }
@@ -110,13 +122,27 @@ function skip(reason: string): Plan {
   };
 }
 
+function commentsOnPr(
+  branch: Branch,
+  params: Params,
+): branch is Branch & { prNumber: number } {
+  return params.commentOnOpenPrs && branch.openPrs && branch.prNumber !== null;
+}
+
 type Comment = { created_at: string; id: number };
 
 async function getCommitCommentsForBranch(
   commitComments: TaggedCommitComments,
   branch: Branch,
+  params: Params,
 ): Promise<Comment[]> {
   const commentTag = "stale:" + branch.branchName;
+  if (commentsOnPr(branch, params)) {
+    return await commitComments.getPullRequestCommentsWithTag({
+      commentTag,
+      prNumber: branch.prNumber,
+    });
+  }
   return await commitComments.getCommitCommentsWithTag({
     commentTag,
     commitSHA: branch.commitId,
@@ -182,7 +208,11 @@ async function planBranchAction(
     );
   }
 
-  const comments = await getCommitCommentsForBranch(commitComments, branch);
+  const comments = await getCommitCommentsForBranch(
+    commitComments,
+    branch,
+    params,
+  );
   if (comments.length == 0 && params.daysBeforeBranchDelete !== 0) {
     return {
       action: "mark stale",

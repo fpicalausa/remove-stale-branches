@@ -4,6 +4,7 @@ export type Branch = {
   prefix: string;
   commitId: string;
   openPrs: boolean;
+  prNumber: number | null;
   author: {
     username: string | null;
     email: string | null;
@@ -34,4 +35,5 @@ export type Params = {
   defaultRecipient: string | null;
   remapAuthors: { [key: string]: string };
   ignoreBranchesWithOpenPRs: boolean;
+  commentOnOpenPrs: boolean;
 };

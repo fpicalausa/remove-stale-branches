@@ -16,6 +16,7 @@ describe("Commit comments", () => {
         },
         isProtected: false,
         openPrs: false,
+        prNumber: null,
       },
       {
         daysBeforeBranchStale: 5,

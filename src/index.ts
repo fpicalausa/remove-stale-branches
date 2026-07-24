@@ -65,6 +65,10 @@ function getRunConfig(): Params {
     "ignore-branches-with-open-prs",
     { required: false },
   );
+
+  const commentOnOpenPrs = core.getBooleanInput("comment-on-open-prs", {
+    required: false,
+  });
   return {
     isDryRun,
     repo,
@@ -81,6 +85,7 @@ function getRunConfig(): Params {
     remapAuthors,
     ignoreUnknownAuthors,
     ignoreBranchesWithOpenPRs,
+    commentOnOpenPrs,
   };
 }
 
