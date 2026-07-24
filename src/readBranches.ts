@@ -145,12 +145,10 @@ type Ref = {
   id: unknown;
   name: string;
   associatedPullRequests: {
-    nodes: [
-      {
-        number: number;
-        state: "OPEN";
-      },
-    ];
+    nodes: Array<{
+       number: number;
+       state: "OPEN";
+    }>;
   };
   prefix: string;
   refUpdateRule: unknown | null;

@@ -92,15 +92,16 @@ async function processBranch(
       return;
     }
 
-    commitComments.deleteBranch(branch);
+    await commitComments.deleteBranch(branch);
 
-    plan.comments.forEach((c) => {
-      if (commentsOnPr(branch, params)) {
-        commitComments.deletePullRequestComment({ commentId: c.id });
-      } else {
-        commitComments.deleteCommitComments({ commentId: c.id });
-      }
-    });
+    await Promise.all(
+      plan.comments.map((c) => {
+        if (commentsOnPr(branch, params)) {
+          return commitComments.deletePullRequestComment({ commentId: c.id });
+        }
+        return commitComments.deleteCommitComments({ commentId: c.id });
+      }),
+    );
   }
 }
 
