@@ -110,7 +110,7 @@ inputs:
       Whether to leave the stale notification as a comment on the branch's open
       pull request instead of on the last commit. Branches without an open pull
       request continue to receive a commit comment. Requires the
-      `pull-requests: write` scope.
+      `issues: write` scope.
     default: "false"
     required: false
   remap-authors:
