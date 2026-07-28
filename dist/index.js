@@ -19874,11 +19874,6 @@ const GRAPHQL_QUERY = `query ($repo: String!, $owner: String!, $after: String) {
             }
           }
           prefix
-          ... on Ref {
-            refUpdateRule {
-              allowsDeletions
-            }
-          }
           target {
           ... on Commit {
               oid
@@ -19917,11 +19912,6 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
             }
           }
           prefix
-          ... on Ref {
-            refUpdateRule {
-              allowsDeletions
-            }
-          }
           target {
           ... on Commit {
               oid
@@ -19946,6 +19936,23 @@ const GRAPHQL_QUERY_WITH_ORG = `query ($repo: String!, $owner: String!, $organiz
     }
   }
 }`;
+async function fetchProtectedBranchNames(octokit, headers, repo) {
+	const protectedBranchNames = /* @__PURE__ */ new Set();
+	const perPage = 100;
+	for (let page = 1;; ++page) {
+		const { data } = await octokit.request("GET /repos/{owner}/{repo}/branches", {
+			owner: repo.owner,
+			repo: repo.repo,
+			protected: true,
+			per_page: perPage,
+			page,
+			headers
+		});
+		for (const branch of data) protectedBranchNames.add(branch.name);
+		if (data.length < perPage) break;
+	}
+	return protectedBranchNames;
+}
 async function* readBranches(octokit, headers, repo, organization) {
 	let pagination = {
 		hasNextPage: true,
@@ -19953,6 +19960,7 @@ async function* readBranches(octokit, headers, repo, organization) {
 		hasPreviousPage: false,
 		startCursor: null
 	};
+	const protectedBranchNames = await fetchProtectedBranchNames(octokit, headers, repo);
 	while (pagination.hasNextPage) {
 		const params = {
 			...repo,
@@ -19963,7 +19971,7 @@ async function* readBranches(octokit, headers, repo, organization) {
 		const { repository: { refs: { edges, pageInfo } } } = await octokit.graphql(organization ? GRAPHQL_QUERY_WITH_ORG : GRAPHQL_QUERY, params);
 		for (let i = 0; i < edges.length; ++i) {
 			const ref = edges[i];
-			const { name, prefix, refUpdateRule, associatedPullRequests } = ref.node;
+			const { name, prefix, associatedPullRequests } = ref.node;
 			const { oid, authoredDate, author } = ref.node.target;
 			let branchAuthor = null;
 			if (author) branchAuthor = {
@@ -19977,7 +19985,7 @@ async function* readBranches(octokit, headers, repo, organization) {
 				prefix,
 				commitId: oid,
 				author: branchAuthor,
-				isProtected: refUpdateRule !== null,
+				isProtected: protectedBranchNames.has(name),
 				openPrs: associatedPullRequests.nodes.length > 0
 			};
 		}
